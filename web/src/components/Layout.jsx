@@ -7,10 +7,10 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <header
-        className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm"
+        className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm rtl-text"
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
-        <Link to="/" className="flex items-center gap-2 no-underline rtl-text">
+        <Link to="/" className="flex items-center gap-2 no-underline">
           <span className="text-xl font-bold font-arabic" style={{ color: 'var(--accent)' }}>
             تفسير النابلسي
           </span>
