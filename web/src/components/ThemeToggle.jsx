@@ -1,0 +1,32 @@
+import { useTheme } from '../contexts/ThemeContext'
+
+const ICONS = {
+  light: '☀️',
+  dark: '🌙',
+  sepia: '📜',
+}
+
+const LABELS = {
+  light: 'Light',
+  dark: 'Dark',
+  sepia: 'Sepia',
+}
+
+export default function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+      style={{
+        backgroundColor: 'var(--bg-secondary)',
+        color: 'var(--text-primary)',
+      }}
+      title={`Current: ${LABELS[theme]}. Click to switch.`}
+    >
+      <span>{ICONS[theme]}</span>
+      <span className="hidden sm:inline">{LABELS[theme]}</span>
+    </button>
+  )
+}

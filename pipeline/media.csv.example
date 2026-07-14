@@ -1,0 +1,3 @@
+surah_id,ayah_number,audio_url,video_url
+# Example: surah 1, ayah 1, audio from IslamWeb, video from YouTube
+# 1,1,https://example.com/audio/1-1.mp3,https://www.youtube.com/watch?v=EXAMPLE
