@@ -17,5 +17,14 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.rtl-text': {
+          direction: 'rtl',
+          'text-align': 'right',
+        },
+      })
+    },
+  ],
 }
