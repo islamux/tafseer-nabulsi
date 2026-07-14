@@ -14,7 +14,7 @@ export default function SurahList() {
   return (
     <div>
       <h1
-        className="text-2xl font-bold mb-4 font-arabic"
+        className="text-2xl font-bold mb-4 font-arabic rtl-text"
         style={{ color: 'var(--text-primary)' }}
       >
         سور القرآن الكريم
@@ -25,7 +25,7 @@ export default function SurahList() {
         placeholder="ابحث عن سورة..."
         value={filter}
         onChange={e => setFilter(e.target.value)}
-        className="w-full mb-6 px-4 py-2.5 rounded-xl text-sm border-0 outline-none font-arabic"
+        className="w-full mb-6 px-4 py-2.5 rounded-xl text-sm border-0 outline-none font-arabic rtl-text"
         style={{
           backgroundColor: 'var(--bg-secondary)',
           color: 'var(--text-primary)',
@@ -51,14 +51,14 @@ export default function SurahList() {
                 </span>
               )}
             </div>
-            <h2 className="text-lg font-bold font-arabic mt-1">{surah.name}</h2>
-            <p className="text-xs opacity-60 mt-1 font-arabic">{surah.ayah_count} آية</p>
+            <h2 className="text-lg font-bold font-arabic rtl-text mt-1">{surah.name}</h2>
+            <p className="text-xs opacity-60 mt-1 font-arabic rtl-text">{surah.ayah_count} آية</p>
           </Link>
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-center opacity-60 mt-8 font-arabic" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-center opacity-60 mt-8 font-arabic rtl-text" style={{ color: 'var(--text-secondary)' }}>
           لا توجد نتائج
         </p>
       )}

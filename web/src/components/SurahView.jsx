@@ -43,23 +43,23 @@ export default function SurahView() {
   if (error) {
     return (
       <div className="text-center py-20">
-        <p className="font-arabic" style={{ color: 'var(--text-secondary)' }}>خطأ: {error}</p>
-        <Link to="/" className="mt-4 inline-block font-arabic" style={{ color: 'var(--accent)' }}>العودة للرئيسية</Link>
+        <p className="font-arabic rtl-text" style={{ color: 'var(--text-secondary)' }}>خطأ: {error}</p>
+        <Link to="/" className="mt-4 inline-block font-arabic rtl-text" style={{ color: 'var(--accent)' }}>العودة للرئيسية</Link>
       </div>
     )
   }
 
   return (
     <div>
-      <Link to="/" className="text-sm mb-4 inline-block font-arabic" style={{ color: 'var(--accent)' }}>
+      <Link to="/" className="text-sm mb-4 inline-block font-arabic rtl-text" style={{ color: 'var(--accent)' }}>
         ← العودة للسور
       </Link>
 
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold font-arabic" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="text-3xl font-bold font-arabic rtl-text" style={{ color: 'var(--text-primary)' }}>
           سورة {surahMeta?.name || surah?.name}
         </h1>
-        <p className="text-sm mt-1 font-arabic" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm mt-1 font-arabic rtl-text" style={{ color: 'var(--text-secondary)' }}>
           {surah?.ayahs?.length || surahMeta?.ayah_count} آية
         </p>
       </div>

@@ -34,8 +34,3 @@ html, body {
   color: var(--text-primary);
   transition: background-color 0.2s, color 0.2s;
 }
-
-.font-arabic {
-  direction: rtl;
-  text-align: right;
-}

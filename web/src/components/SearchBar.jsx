@@ -21,7 +21,7 @@ export default function SearchBar() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 font-arabic" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-bold mb-4 font-arabic rtl-text" style={{ color: 'var(--text-primary)' }}>
         البحث في القرآن والتفسير
       </h1>
 
@@ -32,7 +32,7 @@ export default function SearchBar() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 px-4 py-2.5 rounded-xl text-sm border-0 outline-none font-arabic"
+          className="flex-1 px-4 py-2.5 rounded-xl text-sm border-0 outline-none font-arabic rtl-text"
           style={{
             backgroundColor: 'var(--bg-secondary)',
             color: 'var(--text-primary)',
@@ -41,7 +41,7 @@ export default function SearchBar() {
         <button
           onClick={handleSearch}
           disabled={searchLoading}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 font-arabic"
+          className="px-4 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 font-arabic rtl-text"
           style={{ backgroundColor: 'var(--accent)' }}
         >
           {searchLoading ? `جاري التحميل... ${searchProgress}%` : 'بحث'}
@@ -51,21 +51,21 @@ export default function SearchBar() {
       {searchLoading && (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-3" style={{ borderColor: 'var(--accent)' }}></div>
-          <p className="text-sm font-arabic" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-sm font-arabic rtl-text" style={{ color: 'var(--text-secondary)' }}>
             جاري تحميل البيانات... {searchProgress}%
           </p>
         </div>
       )}
 
       {!searchLoading && searched && results.length === 0 && (
-        <p className="text-center py-8 font-arabic" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-center py-8 font-arabic rtl-text" style={{ color: 'var(--text-secondary)' }}>
           لا توجد نتائج لـ "{query}"
         </p>
       )}
 
       {!searchLoading && results.length > 0 && (
         <div>
-          <p className="text-sm mb-4 font-arabic" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-sm mb-4 font-arabic rtl-text" style={{ color: 'var(--text-secondary)' }}>
             {results.length} نتيجة
           </p>
           {results.map((r, i) => (
@@ -76,7 +76,7 @@ export default function SearchBar() {
               style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-bold font-arabic" style={{ color: 'var(--accent)' }}>
+                <span className="text-sm font-bold font-arabic rtl-text" style={{ color: 'var(--accent)' }}>
                   سورة {r.surah_name} — آية {r.ayah_number}
                 </span>
               </div>
