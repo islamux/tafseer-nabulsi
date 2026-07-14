@@ -26,7 +26,7 @@ export default function Layout({ children }) {
             }}
           >
             <span>🔍</span>
-            <span className="hidden sm:inline">Search</span>
+            <span className="hidden sm:inline arabic-text">بحث</span>
           </Link>
           <ThemeToggle />
         </div>
