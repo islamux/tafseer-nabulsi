@@ -33,7 +33,7 @@ export default function AyahCard({ ayah, surahId }) {
         <div className="mt-3">
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-xs font-medium underline"
+            className="text-xs font-medium underline font-arabic"
             style={{ color: 'var(--accent)' }}
           >
             {expanded ? 'إخفاء التفسير' : 'عرض التفسير الكامل'}

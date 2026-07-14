@@ -52,13 +52,13 @@ export default function SurahList() {
               )}
             </div>
             <h2 className="text-lg font-bold font-arabic mt-1">{surah.name}</h2>
-            <p className="text-xs opacity-60 mt-1">{surah.ayah_count} آية</p>
+            <p className="text-xs opacity-60 mt-1 font-arabic">{surah.ayah_count} آية</p>
           </Link>
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-center opacity-60 mt-8" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-center opacity-60 mt-8 font-arabic" style={{ color: 'var(--text-secondary)' }}>
           لا توجد نتائج
         </p>
       )}

@@ -11,7 +11,7 @@ export default function Layout({ children }) {
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
         <Link to="/" className="flex items-center gap-2 no-underline">
-          <span className="text-xl font-bold" style={{ color: 'var(--accent)' }}>
+          <span className="text-xl font-bold font-arabic" style={{ color: 'var(--accent)' }}>
             تفسير النابلسي
           </span>
         </Link>
