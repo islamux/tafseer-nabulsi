@@ -26,7 +26,9 @@
   --accent: #00796b;
 }
 
-body {
+html, body {
+  direction: ltr;
+  text-align: left;
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
