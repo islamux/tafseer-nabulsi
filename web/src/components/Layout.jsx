@@ -10,8 +10,8 @@ export default function Layout({ children }) {
         className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm"
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
-        <Link to="/" className="flex items-center gap-2 no-underline">
-          <span className="text-xl font-bold font-arabic rtl-text" style={{ color: 'var(--accent)' }}>
+        <Link to="/" className="flex items-center gap-2 no-underline rtl-text">
+          <span className="text-xl font-bold font-arabic" style={{ color: 'var(--accent)' }}>
             تفسير النابلسي
           </span>
         </Link>
