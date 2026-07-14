@@ -1,25 +1,27 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { loadIndex, loadSurah, buildSearchIndex, searchLocal } from '../api/data'
 
 const DataContext = createContext()
 
 export function DataProvider({ children }) {
   const [index, setIndex] = useState([])
-  const [surahCache, setSurahCache] = useState(new Map())
   const [searchIndex, setSearchIndex] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchProgress, setSearchProgress] = useState(0)
+  const [cacheTick, setCacheTick] = useState(0)
+  const surahCacheRef = useRef(new Map())
 
   useEffect(() => {
     loadIndex().then(setIndex).catch(console.error)
   }, [])
 
   const getSurah = useCallback(async (id) => {
-    if (surahCache.has(id)) return surahCache.get(id)
+    if (surahCacheRef.current.has(id)) return surahCacheRef.current.get(id)
     const data = await loadSurah(id)
-    setSurahCache(prev => new Map(prev).set(id, data))
+    surahCacheRef.current.set(id, data)
+    setCacheTick(t => t + 1)
     return data
-  }, [surahCache])
+  }, [])
 
   const search = useCallback(async (query) => {
     if (!query) return []

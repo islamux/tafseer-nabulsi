@@ -11,7 +11,6 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    document.documentElement.setAttribute('dir', 'ltr')
     localStorage.setItem('tafsir-theme', theme)
   }, [theme])
 

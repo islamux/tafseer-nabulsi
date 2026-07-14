@@ -14,7 +14,8 @@ function loadFavorites() {
       result[surahId] = new Set(ayahs)
     }
     return result
-  } catch {
+  } catch (e) {
+    console.error('Failed to load favorites from localStorage:', e)
     return {}
   }
 }
