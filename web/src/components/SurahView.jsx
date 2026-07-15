@@ -52,7 +52,7 @@ export default function SurahView() {
   return (
     <div>
       <Link to="/" className="text-sm mb-4 inline-block arabic-text" style={{ color: 'var(--accent)' }}>
-        ← العودة للسور
+        العودة للسور ←
       </Link>
 
       <div className="text-center mb-8">

@@ -12,8 +12,8 @@ export default function NotFound() {
       </p>
       <Link
         to="/"
-        className="px-4 py-2 rounded-lg text-sm font-medium text-white no-underline arabic-text"
-        style={{ backgroundColor: 'var(--accent)' }}
+        className="px-4 py-2 rounded-lg text-sm font-medium no-underline arabic-text"
+        style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
       >
         العودة للرئيسية
       </Link>

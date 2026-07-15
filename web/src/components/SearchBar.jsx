@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
+import { toArabicNum } from '../utils/arabic'
 
 export default function SearchBar() {
   const { search, searchLoading, searchProgress } = useData()
@@ -41,8 +42,8 @@ export default function SearchBar() {
         <button
           onClick={handleSearch}
           disabled={searchLoading}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 arabic-text"
-          style={{ backgroundColor: 'var(--accent)' }}
+          className="px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 arabic-text transition-opacity hover:opacity-90"
+          style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
         >
           {searchLoading ? `جاري التحميل... ${searchProgress}%` : 'بحث'}
         </button>
@@ -77,7 +78,7 @@ export default function SearchBar() {
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-bold arabic-text" style={{ color: 'var(--accent)' }}>
-                  سورة {r.surah_name} — آية {r.ayah_number}
+                  سورة {r.surah_name} — آية {toArabicNum(r.ayah_number)}
                 </span>
               </div>
               <p className="text-sm font-arabic line-clamp-2" style={{ color: 'var(--text-primary)' }}>

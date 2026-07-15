@@ -7,7 +7,7 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <header
-        className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm rtl-text"
+        className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm"
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
         <Link to="/" className="flex items-center gap-2 no-underline">
@@ -22,7 +22,7 @@ export default function Layout({ children }) {
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors no-underline"
             style={{
               backgroundColor: location.pathname === '/search' ? 'var(--accent)' : 'transparent',
-              color: location.pathname === '/search' ? '#fff' : 'var(--text-primary)',
+              color: location.pathname === '/search' ? 'var(--text-on-accent)' : 'var(--text-primary)',
             }}
           >
             <span>🔍</span>

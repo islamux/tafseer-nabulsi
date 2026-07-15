@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useFavorites } from '../contexts/FavoritesContext'
+import { toArabicNum } from '../utils/arabic'
 
 export default function AyahCard({ ayah, surahId }) {
   const [expanded, setExpanded] = useState(false)
@@ -7,50 +8,69 @@ export default function AyahCard({ ayah, surahId }) {
   const fav = isFavorite(surahId, ayah.number)
 
   return (
-    <div
-      className="p-4 rounded-xl mb-3 transition-shadow"
-      style={{ backgroundColor: 'var(--bg-secondary)' }}
-    >
-      <div className="flex items-start gap-3">
-        <span
-          className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold"
-          style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
-        >
-          {ayah.number}
-        </span>
-        <p className="text-lg leading-relaxed font-arabic flex-1" style={{ color: 'var(--text-primary)' }}>
-          {ayah.text}
+    <div className="py-6 border-b" style={{ borderColor: 'var(--border)' }}>
+      <div className="text-center">
+        <p className="text-2xl leading-[2.2] font-arabic inline" style={{ color: 'var(--text-primary)' }}>
+          <span style={{ color: 'var(--accent)' }}>﴾</span>
+          {'\u00A0'}{ayah.text}{'\u00A0'}
+          <span style={{ color: 'var(--accent)' }}>﴿</span>
+          {'\u00A0'}
+          <span
+            className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold align-middle"
+            style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
+          >
+            {toArabicNum(ayah.number)}
+          </span>
         </p>
       </div>
 
       {ayah.tafsir_short && (
-        <p className="mt-3 text-sm opacity-80 font-arabic" style={{ color: 'var(--text-secondary)' }}>
+        <p className="mt-4 text-sm text-center font-arabic" style={{ color: 'var(--text-secondary)' }}>
           {ayah.tafsir_short}
         </p>
       )}
 
       {ayah.tafsir_long && (
-        <div className="mt-3">
+        <div className="mt-4 text-center">
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-xs font-medium underline arabic-text"
+            className="text-xs font-medium underline arabic-text transition-opacity hover:opacity-70"
             style={{ color: 'var(--accent)' }}
           >
             {expanded ? 'إخفاء التفسير' : 'عرض التفسير الكامل'}
           </button>
-          {expanded && (
-            <p className="mt-2 text-sm leading-relaxed font-arabic whitespace-pre-line" style={{ color: 'var(--text-primary)' }}>
-              {ayah.tafsir_long}
-            </p>
-          )}
+          {expanded && (() => {
+            const dateMatch = ayah.tafsir_long.match(/^(\d{4})-\d{2}-\d{2}\s*/)
+            const year = dateMatch ? dateMatch[1] : null
+            const body = dateMatch ? ayah.tafsir_long.slice(dateMatch[0].length) : ayah.tafsir_long
+            return (
+              <div className="mt-4 p-4 rounded-lg text-right" style={{ backgroundColor: 'var(--tafsir-tint)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-bold" style={{ color: 'var(--accent)' }}>التفسير</span>
+                  {year && (
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-bold"
+                      style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
+                    >
+                      {toArabicNum(year)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-base leading-loose font-arabic whitespace-pre-line" style={{ color: 'var(--text-primary)' }}>
+                  {body}
+                </p>
+              </div>
+            )
+          })()}
         </div>
       )}
 
-      <div className="mt-3 flex justify-end">
+      <div className="mt-3 flex justify-center">
         <button
           onClick={() => toggleFavorite(surahId, ayah.number)}
           className="text-xl transition-transform hover:scale-110"
           title={fav ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+          aria-label={fav ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
         >
           {fav ? '❤️' : '🤍'}
         </button>
