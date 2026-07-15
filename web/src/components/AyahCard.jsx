@@ -26,7 +26,7 @@ export default function AyahCard({ ayah, surahId }) {
 
       {ayah.tafsir_short && (
         <p className="mt-4 text-sm text-center font-arabic" style={{ color: 'var(--text-secondary)' }}>
-          {ayah.tafsir_short}
+          {toArabicNum(ayah.tafsir_short)}
         </p>
       )}
 
@@ -57,7 +57,7 @@ export default function AyahCard({ ayah, surahId }) {
                   )}
                 </div>
                 <p className="text-base leading-loose font-arabic whitespace-pre-line" style={{ color: 'var(--text-primary)' }}>
-                  {body}
+                  {toArabicNum(body)}
                 </p>
               </div>
             )
