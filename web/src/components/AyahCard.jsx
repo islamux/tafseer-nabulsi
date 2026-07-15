@@ -10,13 +10,13 @@ export default function AyahCard({ ayah, surahId }) {
   return (
     <div className="py-6 border-b" style={{ borderColor: 'var(--border)' }}>
       <div className="text-center">
-        <p className="text-2xl leading-[2.2] font-arabic inline" style={{ color: 'var(--text-primary)' }}>
-          <span style={{ color: 'var(--accent)' }}>﴾</span>
-          {'\u00A0'}{ayah.text}{'\u00A0'}
+        <p className="text-2xl leading-[2.2] font-arabic" style={{ color: 'var(--text-primary)' }}>
           <span style={{ color: 'var(--accent)' }}>﴿</span>
+          {'\u00A0'}{ayah.text}{'\u00A0'}
+          <span style={{ color: 'var(--accent)' }}>﴾</span>
           {'\u00A0'}
           <span
-            className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold align-middle"
+            className="inline-block w-7 h-7 rounded-full text-xs font-bold align-middle text-center leading-7"
             style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
           >
             {toArabicNum(ayah.number)}
