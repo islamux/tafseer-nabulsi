@@ -7,9 +7,9 @@ const ICONS = {
 }
 
 const LABELS = {
-  light: 'Light',
-  dark: 'Dark',
-  sepia: 'Sepia',
+  light: 'فاتح',
+  dark: 'داكن',
+  sepia: 'سيبيا',
 }
 
 export default function ThemeToggle() {
