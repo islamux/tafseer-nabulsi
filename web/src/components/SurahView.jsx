@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
 import AyahCard from './AyahCard'
+import { toArabicNum } from '../utils/arabic'
 
 export default function SurahView() {
   const { id } = useParams()
@@ -60,7 +61,7 @@ export default function SurahView() {
           سورة {surahMeta?.name || surah?.name}
         </h1>
         <p className="text-sm mt-1 arabic-text" style={{ color: 'var(--text-secondary)' }}>
-          {surah?.ayahs?.length ?? surahMeta?.ayah_count} آية
+          {toArabicNum(surah?.ayahs?.length ?? surahMeta?.ayah_count)} آية
         </p>
       </div>
 

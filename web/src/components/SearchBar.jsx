@@ -45,7 +45,7 @@ export default function SearchBar() {
           className="px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 arabic-text transition-opacity hover:opacity-90"
           style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
         >
-          {searchLoading ? `جاري التحميل... ${searchProgress}%` : 'بحث'}
+          {searchLoading ? `جاري التحميل... ${toArabicNum(searchProgress)}%` : 'بحث'}
         </button>
       </div>
 
@@ -53,7 +53,7 @@ export default function SearchBar() {
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-3" style={{ borderColor: 'var(--accent)' }}></div>
           <p className="text-sm arabic-text" style={{ color: 'var(--text-secondary)' }}>
-            جاري تحميل البيانات... {searchProgress}%
+            جاري تحميل البيانات... {toArabicNum(searchProgress)}%
           </p>
         </div>
       )}
@@ -67,7 +67,7 @@ export default function SearchBar() {
       {!searchLoading && results.length > 0 && (
         <div>
           <p className="text-sm mb-4 arabic-text" style={{ color: 'var(--text-secondary)' }}>
-            {results.length} نتيجة
+            {toArabicNum(results.length)} نتيجة
           </p>
           {results.map((r, i) => (
             <Link
@@ -86,7 +86,7 @@ export default function SearchBar() {
               </p>
               {(r.tafsir_short || r.tafsir_long) && (
                 <p className="text-xs mt-1 font-arabic line-clamp-2 opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                  {r.tafsir_short || r.tafsir_long.slice(0, 150)}...
+                  {toArabicNum(r.tafsir_short || r.tafsir_long.slice(0, 150))}...
                 </p>
               )}
             </Link>
