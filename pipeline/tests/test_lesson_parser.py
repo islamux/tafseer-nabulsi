@@ -50,3 +50,13 @@ class TestEdgeCases:
         # Fallback should catch single numbers
         result = parse_ayah_range("تفسير آية 100")
         assert result == [100]
+
+    def test_spaced_en_dash(self):
+        """Spaced en-dash should work like regular dash."""
+        result = parse_ayah_range("تفسير الآيات 1 – 8")
+        assert result == [1, 2, 3, 4, 5, 6, 7, 8]
+
+    def test_part_notation(self):
+        """Part notation (same number repeated) should return single ayah."""
+        result = parse_ayah_range("تفسير الآيات 2-2")
+        assert result == [2]  # "part 2 of 2" = single ayah 2
