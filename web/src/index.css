@@ -6,13 +6,19 @@
   .arabic-text {
     @apply font-arabic;
   }
-  .card-bg {
+  .text-primary { color: var(--text-primary); }
+  .text-secondary { color: var(--text-secondary); }
+  .text-accent { color: var(--accent); }
+  .badge-accent {
+    background-color: var(--accent);
+    color: var(--text-on-accent);
+  }
+  .input-style {
     background-color: var(--bg-secondary);
     color: var(--text-primary);
   }
-  .input-bg {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
+  .surah-row:hover {
+    background-color: var(--hover-bg);
   }
 }
 

@@ -21,11 +21,15 @@ function loadFavorites() {
 }
 
 function saveFavorites(favorites) {
-  const obj = {}
-  for (const [surahId, ayahSet] of Object.entries(favorites)) {
-    obj[surahId] = [...ayahSet]
+  try {
+    const obj = {}
+    for (const [surahId, ayahSet] of Object.entries(favorites)) {
+      obj[surahId] = [...ayahSet]
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
+  } catch (e) {
+    console.error('Failed to save favorites to localStorage:', e)
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
 }
 
 export function FavoritesProvider({ children }) {
@@ -55,7 +59,7 @@ export function FavoritesProvider({ children }) {
   }, [favorites])
 
   return (
-    <FavoritesContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
+    <FavoritesContext.Provider value={{ toggleFavorite, isFavorite }}>
       {children}
     </FavoritesContext.Provider>
   )

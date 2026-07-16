@@ -21,6 +21,10 @@ pnpm preview          # in web/
 
 # Copy pipeline data to web
 pnpm copy-data        # in web/
+
+# Run web tests
+pnpm test             # in web/ (16 tests, vitest)
+pnpm test:watch       # watch mode
 ```
 
 ## Project Structure
@@ -29,14 +33,16 @@ pnpm copy-data        # in web/
 - `pipeline/` — Python scraping pipeline (uses `uv` for env/deps)
 - `web/public/data/` — Generated JSON output from pipeline (copied via `pnpm copy-data`)
 - `web/src/components/` — React components
-- `web/src/contexts/` — React Context providers (Theme, Favorites, Data)
-- `web/src/utils/` — Utility functions
+- `web/src/contexts/` — React Context providers (Theme, Favorites, Data, Search)
+- `web/src/utils/` — Utility functions (`arabic.js`, `tafsir.js`)
+- `web/src/api/` — Data access (`data.js`) + search engine (`search.js`)
 
 ## Build & Lint Commands
 
 - **Build web app**: `pnpm build` (run inside `web/`)
+- **Web tests**: `pnpm test` (run inside `web/`, vitest + jsdom)
 - **No linter configured** — verify changes via `pnpm build` succeeding
-- **Pipeline tests**: `cd pipeline && uv run pytest` (16 tests)
+- **Pipeline tests**: `cd pipeline && uv run pytest` (15 tests)
 
 ## Deployment
 

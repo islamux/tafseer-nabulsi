@@ -1,50 +1,22 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
-import { loadIndex, loadSurah, buildSearchIndex, searchLocal } from '../api/data'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { loadIndex, loadSurah } from '../api/data'
 
 const DataContext = createContext()
 
 export function DataProvider({ children }) {
   const [index, setIndex] = useState([])
-  const [searchIndex, setSearchIndex] = useState(null)
-  const [searchLoading, setSearchLoading] = useState(false)
-  const [searchProgress, setSearchProgress] = useState(0)
-  const [cacheTick, setCacheTick] = useState(0)
-  const surahCacheRef = useRef(new Map())
+  const [indexError, setIndexError] = useState(null)
 
   useEffect(() => {
-    loadIndex().then(setIndex).catch(console.error)
+    loadIndex().then(setIndex).catch(err => setIndexError(err.message))
   }, [])
 
-  const getSurah = useCallback(async (id) => {
-    if (surahCacheRef.current.has(id)) return surahCacheRef.current.get(id)
-    const data = await loadSurah(id)
-    surahCacheRef.current.set(id, data)
-    setCacheTick(t => t + 1)
-    return data
+  const fetchSurah = useCallback(async (id) => {
+    return loadSurah(id)
   }, [])
-
-  const search = useCallback(async (query) => {
-    if (!query) return []
-    let idx = searchIndex
-    if (!idx) {
-      setSearchLoading(true)
-      idx = await buildSearchIndex((done, total) => {
-        setSearchProgress(Math.round((done / total) * 100))
-      })
-      setSearchIndex(idx)
-      setSearchLoading(false)
-    }
-    return searchLocal(query, idx)
-  }, [searchIndex])
 
   return (
-    <DataContext.Provider value={{
-      index,
-      getSurah,
-      search,
-      searchLoading,
-      searchProgress,
-    }}>
+    <DataContext.Provider value={{ index, indexError, fetchSurah }}>
       {children}
     </DataContext.Provider>
   )

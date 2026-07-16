@@ -1,19 +1,26 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { useData } from '../contexts/DataContext'
+import { useSearch } from '../contexts/SearchContext'
 import { toArabicNum } from '../utils/arabic'
 
 export default function SearchBar() {
-  const { search, searchLoading, searchProgress } = useData()
+  const { search, isBuildingIndex, searchProgress } = useSearch()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searched, setSearched] = useState(false)
+  const [searchError, setSearchError] = useState(null)
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return
     setSearched(true)
-    const res = await search(query.trim())
-    setResults(res)
+    setSearchError(null)
+    try {
+      const searchResults = await search(query.trim())
+      setResults(searchResults)
+    } catch (err) {
+      setSearchError(err.message)
+      setResults([])
+    }
   }, [query, search])
 
   const handleKeyDown = useCallback((e) => {
@@ -22,7 +29,7 @@ export default function SearchBar() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 arabic-text" style={{ color: 'var(--text-primary)' }}>
+      <h1 className="text-2xl font-bold mb-4 arabic-text text-primary">
         البحث في القرآن والتفسير
       </h1>
 
@@ -33,60 +40,60 @@ export default function SearchBar() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 px-4 py-2.5 rounded-xl text-sm border-0 outline-none arabic-text"
-          style={{
-            backgroundColor: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-          }}
+          className="flex-1 px-4 py-2.5 rounded-xl text-sm border-0 outline-none arabic-text input-style"
         />
         <button
           onClick={handleSearch}
-          disabled={searchLoading}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 arabic-text transition-opacity hover:opacity-90"
-          style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
+          disabled={isBuildingIndex}
+          className="px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 arabic-text transition-opacity hover:opacity-90 badge-accent"
         >
-          {searchLoading ? `جاري التحميل... ${toArabicNum(searchProgress)}%` : 'بحث'}
+          {isBuildingIndex ? `جاري التحميل... ${toArabicNum(searchProgress)}%` : 'بحث'}
         </button>
       </div>
 
-      {searchLoading && (
+      {isBuildingIndex && (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-3" style={{ borderColor: 'var(--accent)' }}></div>
-          <p className="text-sm arabic-text" style={{ color: 'var(--text-secondary)' }}>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-3 border-accent"></div>
+          <p className="text-sm arabic-text text-secondary">
             جاري تحميل البيانات... {toArabicNum(searchProgress)}%
           </p>
         </div>
       )}
 
-      {!searchLoading && searched && results.length === 0 && (
-        <p className="text-center py-8 arabic-text" style={{ color: 'var(--text-secondary)' }}>
+      {!isBuildingIndex && searchError && (
+        <p className="text-center py-8 arabic-text text-secondary">
+          تعذّر البحث: {searchError}
+        </p>
+      )}
+
+      {!isBuildingIndex && !searchError && searched && results.length === 0 && (
+        <p className="text-center py-8 arabic-text text-secondary">
           لا توجد نتائج لـ "{query}"
         </p>
       )}
 
-      {!searchLoading && results.length > 0 && (
+      {!isBuildingIndex && !searchError && results.length > 0 && (
         <div>
-          <p className="text-sm mb-4 arabic-text" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-sm mb-4 arabic-text text-secondary">
             {toArabicNum(results.length)} نتيجة
           </p>
-          {results.map((r, i) => (
+          {results.map((result, idx) => (
             <Link
-              key={`${r.surah_id}-${r.ayah_number}-${i}`}
-              to={`/surah/${r.surah_id}`}
-              className="block p-4 rounded-xl mb-3 transition-shadow hover:shadow-md no-underline"
-              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+              key={`${result.surah_id}-${result.ayah_number}-${idx}`}
+              to={`/surah/${result.surah_id}`}
+              className="block p-4 rounded-xl mb-3 transition-shadow hover:shadow-md no-underline input-style"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-bold arabic-text" style={{ color: 'var(--accent)' }}>
-                  سورة {r.surah_name} — آية {toArabicNum(r.ayah_number)}
+                <span className="text-sm font-bold arabic-text text-accent">
+                  سورة {result.surah_name} — آية {toArabicNum(result.ayah_number)}
                 </span>
               </div>
-              <p className="text-sm font-arabic line-clamp-2" style={{ color: 'var(--text-primary)' }}>
-                {r.text}
+              <p className="text-sm arabic-text line-clamp-2 text-primary">
+                {result.text}
               </p>
-              {(r.tafsir_short || r.tafsir_long) && (
-                <p className="text-xs mt-1 font-arabic line-clamp-2 opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                  {toArabicNum(r.tafsir_short || r.tafsir_long.slice(0, 150))}...
+              {(result.tafsir_short || result.tafsir_long) && (
+                <p className="text-xs mt-1 arabic-text line-clamp-2 opacity-70 text-secondary">
+                  {toArabicNum(result.tafsir_short || result.tafsir_long.slice(0, 150))}...
                 </p>
               )}
             </Link>
