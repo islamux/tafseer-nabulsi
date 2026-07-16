@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { FavoritesProvider } from './contexts/FavoritesContext'
 import { DataProvider } from './contexts/DataContext'
+import { SearchProvider } from './contexts/SearchContext'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
 import SurahList from './components/SurahList'
@@ -15,16 +16,18 @@ export default function App() {
       <ThemeProvider>
         <FavoritesProvider>
           <DataProvider>
-            <BrowserRouter>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<SurahList />} />
-                  <Route path="/surah/:id" element={<SurahView />} />
-                  <Route path="/search" element={<SearchBar />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Layout>
-            </BrowserRouter>
+            <SearchProvider>
+              <BrowserRouter>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<SurahList />} />
+                    <Route path="/surah/:id" element={<SurahView />} />
+                    <Route path="/search" element={<SearchBar />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </BrowserRouter>
+            </SearchProvider>
           </DataProvider>
         </FavoritesProvider>
       </ThemeProvider>

@@ -18,11 +18,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-      style={{
-        backgroundColor: 'var(--bg-secondary)',
-        color: 'var(--text-primary)',
-      }}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors input-style"
       title={`Current: ${LABELS[theme]}. Click to switch.`}
     >
       <span>{ICONS[theme]}</span>
