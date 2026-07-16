@@ -2,25 +2,27 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
 import AyahCard from './AyahCard'
+import Spinner from './Spinner'
+import { toArabicNum } from '../utils/arabic'
 
 export default function SurahView() {
   const { id } = useParams()
   const surahId = parseInt(id, 10)
-  const { getSurah, index } = useData()
+  const { fetchSurah, index } = useData()
   const [surah, setSurah] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const surahMeta = index.find(s => s.surah_id === surahId)
+  const surahMeta = index.find(surah => surah.surah_id === surahId)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError(null)
 
-    getSurah(surahId)
-      .then(data => {
-        if (!cancelled) setSurah(data)
+    fetchSurah(surahId)
+      .then(surahData => {
+        if (!cancelled) setSurah(surahData)
       })
       .catch(err => {
         if (!cancelled) setError(err.message)
@@ -30,37 +32,33 @@ export default function SurahView() {
       })
 
     return () => { cancelled = true }
-  }, [surahId, getSurah])
+  }, [surahId, fetchSurah])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--accent)' }}></div>
-      </div>
-    )
+    return <Spinner />
   }
 
   if (error) {
     return (
       <div className="text-center py-20">
-        <p className="arabic-text" style={{ color: 'var(--text-secondary)' }}>خطأ: {error}</p>
-        <Link to="/" className="mt-4 inline-block arabic-text" style={{ color: 'var(--accent)' }}>العودة للرئيسية</Link>
+        <p className="arabic-text text-secondary">خطأ: {error}</p>
+        <Link to="/" className="mt-4 inline-block arabic-text text-accent">العودة للرئيسية</Link>
       </div>
     )
   }
 
   return (
     <div>
-      <Link to="/" className="text-sm mb-4 inline-block arabic-text" style={{ color: 'var(--accent)' }}>
+      <Link to="/" className="text-sm mb-4 inline-block arabic-text text-accent">
         العودة للسور ←
       </Link>
 
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold arabic-text" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="text-3xl font-bold arabic-text text-primary">
           سورة {surahMeta?.name || surah?.name}
         </h1>
-        <p className="text-sm mt-1 arabic-text" style={{ color: 'var(--text-secondary)' }}>
-          {surah?.ayahs?.length ?? surahMeta?.ayah_count} آية
+        <p className="text-sm mt-1 arabic-text text-secondary">
+          {toArabicNum(surah?.ayahs?.length ?? surahMeta?.ayah_count)} آية
         </p>
       </div>
 
