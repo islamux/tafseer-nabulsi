@@ -49,6 +49,7 @@ def test_generate_report():
     surah_data = [
         {
             "surah_id": 1,
+            "name": "الفاتحة",
             "ayahs": [
                 {"number": 1, "text": "test", "tafsir_short": "s", "tafsir_long": "long", "media": {}},
                 {"number": 2, "text": "test", "tafsir_short": "", "tafsir_long": "", "media": {}},
@@ -61,3 +62,7 @@ def test_generate_report():
     assert report["without_tafsir"] == 1
     assert report["coverage_pct"] == 50.0
     assert "1:2" in report["gaps"]
+    assert report["total_gaps"] == 1
+    assert len(report["per_surah"]) == 1
+    assert report["per_surah"][0]["surah_id"] == 1
+    assert report["per_surah"][0]["coverage_pct"] == 50.0

@@ -79,21 +79,33 @@ def generate_report(surahs_data: list[dict]) -> dict:
     with_tafsir = 0
     without_tafsir = 0
     gaps = []
+    per_surah = []
 
     for s in surahs_data:
+        surah_ayahs = len(s["ayahs"])
+        surah_with_tafsir = sum(1 for a in s["ayahs"] if a["tafsir_long"])
+        total_ayahs += surah_ayahs
+        with_tafsir += surah_with_tafsir
+        
         for a in s["ayahs"]:
-            total_ayahs += 1
-            if a["tafsir_long"]:
-                with_tafsir += 1
-            else:
+            if not a["tafsir_long"]:
                 without_tafsir += 1
                 gaps.append(f"{s['surah_id']}:{a['number']}")
+        
+        per_surah.append({
+            "surah_id": s["surah_id"],
+            "name": s["name"],
+            "ayah_count": surah_ayahs,
+            "with_tafsir": surah_with_tafsir,
+            "coverage_pct": round(surah_with_tafsir / surah_ayahs * 100, 1) if surah_ayahs else 0,
+        })
 
     return {
         "total_ayahs": total_ayahs,
         "with_tafsir": with_tafsir,
         "without_tafsir": without_tafsir,
         "coverage_pct": round(with_tafsir / total_ayahs * 100, 1) if total_ayahs else 0,
-        "gaps": gaps[:50],  # first 50 gaps
+        "gaps": gaps,
         "total_gaps": len(gaps),
+        "per_surah": per_surah,
     }
