@@ -16,13 +16,45 @@ from pathlib import Path
 from src.config import OUTPUT_DIR, SURAH_COUNT, SURAH_NAMES
 from src.merge.builder import build_surah_json, generate_report, save_index, save_surah_json
 from src.quran.parser import parse_quran_json
+from src.tafsir.category_index import (
+    collect_all_stories,
+    extract_category_pagination_inputs,
+    is_tafsir_title,
+    make_ajax_fetcher,
+    parse_stories_from_html,
+)
 from src.tafsir.content_extractor import process_lesson
-from src.tafsir.lesson_parser import parse_ayah_range
-from src.tafsir.scraper import extract_story_links_from_category, fetch_page, fetch_story_page
+from src.tafsir.scraper import fetch_page, fetch_story_page
 from src.tafsir.surah_index import get_surah_category_urls
 from src.utils.logging_setup import setup_logging
 
 logger = logging.getLogger("tafsir-pipeline.main")
+
+
+def _collect_surah_stories(surah_number: int) -> list[dict]:
+    """Fetch a surah's full story list via paginated category AJAX.
+
+    Falls back to the initial server-rendered links if the page exposes no
+    pagination inputs.
+    """
+    cat_info = get_surah_category_urls()[surah_number]
+    try:
+        cat_html = fetch_page(cat_info["category_url"])
+    except Exception as e:
+        logger.warning("  Failed to fetch category page for surah %d: %s", surah_number, e)
+        return []
+
+    stories = parse_stories_from_html(cat_html)
+    pagination = extract_category_pagination_inputs(cat_html)
+    if pagination:
+        fetcher = make_ajax_fetcher(pagination.base_url)
+        ajax_stories = collect_all_stories(pagination.category_id, fetcher)
+        seen = {s["url"] for s in stories}
+        for s in ajax_stories:
+            if s["url"] not in seen:
+                seen.add(s["url"])
+                stories.append(s)
+    return stories
 
 
 def build_surah(surah_number: int, quran_surahs: list) -> dict | None:
@@ -38,40 +70,24 @@ def build_surah(surah_number: int, quran_surahs: list) -> dict | None:
         logger.error("Quran surah %d not found", surah_number)
         return None
 
-    # Get tafsir from category page
-    urls = get_surah_category_urls()
-    cat_info = urls[surah_number]
-    try:
-        cat_html = fetch_page(cat_info["category_url"])
-        stories = extract_story_links_from_category(cat_html, cat_info["category_url"])
-        logger.info("  Found %d story links", len(stories))
-    except Exception as e:
-        logger.warning("  Failed to fetch stories for surah %d: %s", surah_number, e)
-        stories = []
+    # Collect ALL stories for this surah, then keep the tafsir lessons
+    stories = _collect_surah_stories(surah_number)
+    tafsir_count = sum(1 for s in stories if is_tafsir_title(s["title"]))
+    logger.info("  Found %d stories (%d tafsir)", len(stories), tafsir_count)
 
-    # Fetch each story page and filter for this surah's tafsir
     tafsir_entries = []
     for s in stories:
+        if not is_tafsir_title(s["title"]):
+            continue
         try:
             result = fetch_story_page(s["url"])
             if not result:
                 continue
-
-            title = result["title"]
-            body = result["body"]
-            cat_name = result["category_name"]
-
-            # Check if story belongs to this surah and is tafsir
-            belongs_to_surah = surah_name in cat_name or surah_name in title
-            is_tafsir = "تفسير" in title
-
-            if belongs_to_surah and is_tafsir:
-                ayahs = parse_ayah_range(title)
-                if ayahs:
-                    entry = process_lesson(title, body)
-                    tafsir_entries.append(entry)
+            entry = process_lesson(result["title"], result["body"])
+            if entry.ayah_numbers:
+                tafsir_entries.append(entry)
         except Exception as e:
-            logger.warning("  Failed to process story '%s': %s", s.get("title_raw", "?"), e)
+            logger.warning("  Failed to process story '%s': %s", s.get("title", "?")[:40], e)
 
     logger.info("  Processed %d tafsir entries", len(tafsir_entries))
 
