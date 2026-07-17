@@ -58,6 +58,10 @@ pnpm test:watch       # watch mode
 4. Switch to `gh-pages`, copy dist into `web/dist/`
 5. Force-add dist files (gitignored), commit, push
 
+## Git & PR Workflow
+
+- When creating a PR or merging (accepting) a PR, **NEVER delete the branch**. Always omit `--delete-branch` / `-d` / `--delete` from `gh pr merge`, `git push origin --delete`, and `git branch -D`. Keep merged branches intact.
+
 ## Conventions
 
 - **Fully RTL**: `<html dir="rtl">`, Arabic content throughout
