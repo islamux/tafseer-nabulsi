@@ -23,7 +23,7 @@ def test_build_surah_with_tafsir():
     assert len(data["ayahs"]) == 2
     assert data["ayahs"][0]["tafsir_long"] == "نص طويل"
     assert data["ayahs"][0]["tafsir_short"] == "المقدمة"
-    assert data["ayahs"][1]["tafsir_long"] == ""
+    assert data["ayahs"][1]["tafsir_long"] == "نص طويل"
 
 
 def test_build_surah_no_tafsir():
@@ -43,6 +43,39 @@ def test_build_surah_shared_tafsir():
     data = build_surah_json(surah, entries, surah_id=1)
     assert data["ayahs"][0]["tafsir_long"] == "نص مشترك"
     assert data["ayahs"][1]["tafsir_long"] == "نص مشترك"
+
+
+def test_range_inheritance_gap_filling():
+    """Ayahs between two covered ranges inherit from nearest neighbor."""
+    surah = _make_surah(ayah_texts={i: f"ayah {i}" for i in range(1, 11)})
+    entries = [
+        TafsirEntry(ayah_numbers=[1, 2], title="آيات 1-2", theme="مقدمة", body="text for 1-2"),
+        TafsirEntry(ayah_numbers=[8, 9, 10], title="آيات 8-10", theme="خاتمة", body="text for 8-10"),
+    ]
+    data = build_surah_json(surah, entries, surah_id=1)
+    assert data["ayahs"][0]["tafsir_long"] == "text for 1-2"
+    assert data["ayahs"][1]["tafsir_long"] == "text for 1-2"
+    assert data["ayahs"][2]["tafsir_long"] == "text for 1-2"
+    assert data["ayahs"][3]["tafsir_long"] == "text for 1-2"
+    assert data["ayahs"][4]["tafsir_long"] == "text for 1-2"
+    assert data["ayahs"][5]["tafsir_long"] == "text for 8-10"
+    assert data["ayahs"][6]["tafsir_long"] == "text for 8-10"
+    assert data["ayahs"][7]["tafsir_long"] == "text for 8-10"
+    assert data["ayahs"][7]["tafsir_long"] == "text for 8-10"
+    assert data["ayahs"][8]["tafsir_long"] == "text for 8-10"
+    assert data["ayahs"][9]["tafsir_long"] == "text for 8-10"
+
+
+def test_range_inheritance_direct_takes_precedence():
+    """Direct tafsir always wins over inherited."""
+    surah = _make_surah(ayah_texts={i: f"ayah {i}" for i in range(1, 6)})
+    entries = [
+        TafsirEntry(ayah_numbers=[1, 2, 3, 4, 5], title="آيات 1-5", theme="عام", body="range text"),
+        TafsirEntry(ayah_numbers=[3], title="آية 3", theme="مفصل", body="direct text"),
+    ]
+    data = build_surah_json(surah, entries, surah_id=1)
+    assert data["ayahs"][2]["tafsir_long"] == "direct text"
+    assert data["ayahs"][0]["tafsir_long"] == "range text"
 
 
 def test_generate_report():

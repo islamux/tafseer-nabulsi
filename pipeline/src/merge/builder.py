@@ -19,15 +19,23 @@ def build_surah_json(
 
     ayah_list = []
     for ayah in surah.ayahs:
-        # Find all tafsir entries that mention this ayah
-        matching = [t for t in tafsir_entries if ayah.number in t.ayah_numbers]
+        direct = [t for t in tafsir_entries if ayah.number in t.ayah_numbers]
+        specific = [t for t in direct if len(t.ayah_numbers) == 1]
 
-        if matching:
-            tafsir_long = "\n\n".join(t.body for t in matching)
-            tafsir_short = "; ".join(t.theme for t in matching if t.theme)
+        if specific:
+            tafsir_long = "\n\n".join(t.body for t in specific)
+            tafsir_short = "; ".join(t.theme for t in specific if t.theme)
+        elif direct:
+            tafsir_long = "\n\n".join(t.body for t in direct)
+            tafsir_short = "; ".join(t.theme for t in direct if t.theme)
         else:
-            tafsir_long = ""
-            tafsir_short = ""
+            inherited = _find_nearest_range(ayah.number, tafsir_entries)
+            if inherited:
+                tafsir_long = inherited.body
+                tafsir_short = inherited.theme
+            else:
+                tafsir_long = ""
+                tafsir_short = ""
 
         media = map_media_links(surah_id, ayah.number, media_map)
 
@@ -44,6 +52,31 @@ def build_surah_json(
         "name": SURAH_NAMES[surah_id - 1],
         "ayahs": ayah_list,
     }
+
+
+def _find_nearest_range(
+    ayah_number: int,
+    entries: list[TafsirEntry],
+) -> TafsirEntry | None:
+    """Find the nearest TafsirEntry whose range covers ayah_number's neighborhood."""
+    if not entries:
+        return None
+
+    best = None
+    best_distance = float("inf")
+
+    for entry in entries:
+        if not entry.ayah_numbers:
+            continue
+        lo = min(entry.ayah_numbers)
+        hi = max(entry.ayah_numbers)
+        midpoint = (lo + hi) / 2
+        distance = abs(ayah_number - midpoint)
+        if distance < best_distance:
+            best_distance = distance
+            best = entry
+
+    return best
 
 
 def save_surah_json(surah_id: int, data: dict) -> Path:
