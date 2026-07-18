@@ -1,3 +1,5 @@
+import { stripLeadingBasmala } from '../utils/arabic'
+
 const DATA_BASE = '/data'
 
 let indexCache = null
@@ -16,6 +18,9 @@ export async function loadSurah(id) {
   const resp = await fetch(`${DATA_BASE}/${id}.json`)
   if (!resp.ok) throw new Error(`Failed to load surah ${id}: ${resp.status}`)
   const surahData = await resp.json()
+  if (id !== 1 && surahData.ayahs[0]) {
+    surahData.ayahs[0].text = stripLeadingBasmala(surahData.ayahs[0].text)
+  }
   surahCache.set(id, surahData)
   return surahData
 }

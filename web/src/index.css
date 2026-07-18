@@ -32,6 +32,9 @@
   --text-on-accent: #fefdfe;
   --border: rgba(0, 137, 123, 0.12);
   --hover-bg: rgba(0, 137, 123, 0.04);
+  --verse-text: #14241c;
+  --verse-glyph: #1b5e20;
+  --tafsir-text: #3e2723;
 }
 
 [data-theme="dark"] {
@@ -44,6 +47,9 @@
   --text-on-accent: #f0fdfb;
   --border: rgba(77, 182, 172, 0.15);
   --hover-bg: rgba(77, 182, 172, 0.08);
+  --verse-text: #d4e8db;
+  --verse-glyph: #4db6ac;
+  --tafsir-text: #bcaaa4;
 }
 
 [data-theme="sepia"] {
@@ -56,6 +62,9 @@
   --text-on-accent: #fdf8ee;
   --border: rgba(62, 39, 35, 0.15);
   --hover-bg: rgba(0, 121, 107, 0.05);
+  --verse-text: #2d3b2e;
+  --verse-glyph: #00796b;
+  --tafsir-text: #4e342e;
 }
 
 html, body {
@@ -65,6 +74,14 @@ html, body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.arabic-text {
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  text-rendering: optimizeLegibility;
 }
 
 input:focus {
