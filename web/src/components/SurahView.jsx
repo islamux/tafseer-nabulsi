@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
 import AyahCard from './AyahCard'
+import BismillahHeader from './BismillahHeader'
 import Spinner from './Spinner'
 import { toArabicNum } from '../utils/arabic'
+import { hasSeparateBismillah } from '../utils/quran'
 
 export default function SurahView() {
   const { id } = useParams()
@@ -53,14 +55,23 @@ export default function SurahView() {
         العودة للسور ←
       </Link>
 
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold arabic-text text-primary">
+      <div className="text-center mb-10">
+        <span className="inline-flex items-center justify-center w-14 h-14 rounded-full text-xl font-bold mb-4 badge-accent">
+          {toArabicNum(surahId)}
+        </span>
+        <h1 className="text-4xl font-bold arabic-text text-primary mb-2">
           سورة {surahMeta?.name || surah?.name}
         </h1>
-        <p className="text-sm mt-1 arabic-text text-secondary">
+        <p className="text-sm arabic-text text-secondary">
           {toArabicNum(surah?.ayahs?.length ?? surahMeta?.ayah_count)} آية
         </p>
+        <div
+          className="mx-auto mt-6 w-24 h-0.5 rounded-full opacity-40"
+          style={{ backgroundColor: 'var(--accent)' }}
+        />
       </div>
+
+      {hasSeparateBismillah(surahId) && <BismillahHeader />}
 
       <div>
         {surah?.ayahs?.map(ayah => (

@@ -60,3 +60,16 @@ class TestEdgeCases:
         """Part notation (same number repeated) should return single ayah."""
         result = parse_ayah_range("تفسير الآيات 2-2")
         assert result == [2]  # "part 2 of 2" = single ayah 2
+
+    def test_comma_separated_numbers(self):
+        assert parse_ayah_range("تفسير الآيات 1، 2، 3") == [1, 2, 3]
+
+    def test_bare_number_after_tafsir(self):
+        result = parse_ayah_range("تفسير 24")
+        assert result == [24]
+
+    def test_number_after_colon(self):
+        assert parse_ayah_range("تفسير: الآية 24") == [24]
+
+    def test_title_with_only_number(self):
+        assert parse_ayah_range("الآيات 5-10") == list(range(5, 11))

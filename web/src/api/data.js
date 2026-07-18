@@ -1,3 +1,6 @@
+import { stripLeadingBasmala } from '../utils/arabic'
+import { hasSeparateBismillah } from '../utils/quran'
+
 const DATA_BASE = '/data'
 
 let indexCache = null
@@ -11,11 +14,18 @@ export async function loadIndex() {
   return indexCache
 }
 
+function normalizeSurah(surahData, id) {
+  if (hasSeparateBismillah(id) && surahData.ayahs[0]) {
+    surahData.ayahs[0].text = stripLeadingBasmala(surahData.ayahs[0].text)
+  }
+  return surahData
+}
+
 export async function loadSurah(id) {
   if (surahCache.has(id)) return surahCache.get(id)
   const resp = await fetch(`${DATA_BASE}/${id}.json`)
   if (!resp.ok) throw new Error(`Failed to load surah ${id}: ${resp.status}`)
-  const surahData = await resp.json()
+  const surahData = normalizeSurah(await resp.json(), id)
   surahCache.set(id, surahData)
   return surahData
 }
