@@ -9,7 +9,7 @@ export default function TafsirText({ body }) {
     <div className="max-w-2xl mx-auto space-y-4">
       {paragraphs.map((para, i) => (
         <p
-          key={i}
+          key={`p${i}`}
           className="arabic-text text-tafsir text-lg leading-[2.1] text-justify"
         >
           {toArabicNum(para)}

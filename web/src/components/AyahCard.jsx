@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { useFavorites } from '../contexts/FavoritesContext'
 import { toArabicNum, splitAyahSegments } from '../utils/arabic'
+import { basmalaIsFirstAyah } from '../utils/quran'
 import { parseTafsir } from '../utils/tafsir'
 import TafsirText from './TafsirText'
+
+const BRACKET_SCALE = '1.15em'
 
 export default function AyahCard({ ayah, surahId }) {
   const [expanded, setExpanded] = useState(false)
@@ -10,7 +13,7 @@ export default function AyahCard({ ayah, surahId }) {
   const isFav = isFavorite(surahId, ayah.number)
   const favLabel = isFav ? 'إزالة من المفضلة' : 'إضافة للمفضلة'
   const { year, body: tafsirBody } = parseTafsir(ayah.tafsir_long || '')
-  const isBasmalah = ayah.number === 1 && surahId === 1
+  const isBasmalah = ayah.number === 1 && basmalaIsFirstAyah(surahId)
 
   const segments = splitAyahSegments(ayah.text)
 
@@ -20,7 +23,7 @@ export default function AyahCard({ ayah, surahId }) {
         <p
           className={`arabic-text text-verse ${isBasmalah ? 'text-3xl leading-[2.6]' : 'text-2xl leading-[2.2]'}`}
         >
-          <span className="text-verse-glyph" style={{ fontSize: '1.15em' }}>﴿</span>
+          <span className="text-verse-glyph" style={{ fontSize: BRACKET_SCALE }}>﴿</span>
           {'\u00A0'}
           {segments.map((seg, i) => (
             <span key={i}>
@@ -29,11 +32,10 @@ export default function AyahCard({ ayah, surahId }) {
             </span>
           ))}
           {'\u00A0'}
-          <span className="text-verse-glyph" style={{ fontSize: '1.15em' }}>﴾</span>
+          <span className="text-verse-glyph" style={{ fontSize: BRACKET_SCALE }}>﴾</span>
           {'\u00A0'}
           <span
-            className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold badge-accent align-middle"
-            style={{ lineHeight: 1 }}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold badge-accent leading-none align-middle"
           >
             {toArabicNum(ayah.number)}
           </span>

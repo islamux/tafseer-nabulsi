@@ -5,6 +5,7 @@ import AyahCard from './AyahCard'
 import BismillahHeader from './BismillahHeader'
 import Spinner from './Spinner'
 import { toArabicNum } from '../utils/arabic'
+import { hasSeparateBismillah } from '../utils/quran'
 
 export default function SurahView() {
   const { id } = useParams()
@@ -55,16 +56,13 @@ export default function SurahView() {
       </Link>
 
       <div className="text-center mb-10">
-        <span
-          className="inline-flex items-center justify-center w-14 h-14 rounded-full text-xl font-bold mb-4"
-          style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)' }}
-        >
+        <span className="inline-flex items-center justify-center w-14 h-14 rounded-full text-xl font-bold mb-4 badge-accent">
           {toArabicNum(surahId)}
         </span>
         <h1 className="text-4xl font-bold arabic-text text-primary mb-2">
           سورة {surahMeta?.name || surah?.name}
         </h1>
-        <p className="text-sm arabic-text" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm arabic-text text-secondary">
           {toArabicNum(surah?.ayahs?.length ?? surahMeta?.ayah_count)} آية
         </p>
         <div
@@ -73,7 +71,7 @@ export default function SurahView() {
         />
       </div>
 
-      {surahId !== 1 && surahId !== 9 && <BismillahHeader />}
+      {hasSeparateBismillah(surahId) && <BismillahHeader />}
 
       <div>
         {surah?.ayahs?.map(ayah => (
