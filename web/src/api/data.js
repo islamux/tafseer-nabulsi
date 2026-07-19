@@ -1,7 +1,7 @@
 import { stripLeadingBasmala } from '../utils/arabic'
 import { hasSeparateBismillah } from '../utils/quran'
 
-const DATA_BASE = '/data'
+const DATA_BASE = import.meta.env.VITE_DATA_BASE || '/data'
 
 let indexCache = null
 const surahCache = new Map()
