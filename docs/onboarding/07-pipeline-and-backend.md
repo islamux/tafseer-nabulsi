@@ -71,6 +71,8 @@ In plain English, it does three things:
 
 Those output files are then **copied** into `web/public/data/` (the web app's `package.json` even has a `copy-data` script for this). That's how the pipeline's output becomes the web app's input.
 
+> **In production** the JSON isn't baked into the deploy — the dataset is ~388MB, too big for git/GitHub Pages. Instead, the same files are uploaded to **Cloudflare R2** (an S3-compatible object store) under `data/*.json`, and the web app reads `import.meta.env.VITE_DATA_BASE` to find them. Locally `VITE_DATA_BASE` is unset, so the app falls back to `/data` (i.e. `web/public/data/`). Same files, two delivery paths. See `AGENTS.md` → "Data hosting (R2)" for the runbook.
+
 You do **not** need to know Python for any of this. Just know: *the pipeline produces JSON; the web app consumes it.*
 
 ### The Supabase backend (`supabase/`) — staged for the future
