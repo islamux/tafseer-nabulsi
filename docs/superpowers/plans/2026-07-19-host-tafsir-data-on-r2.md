@@ -120,3 +120,45 @@ Tasks 9–15 (Phase 2)           →  when user has R2 access; runbook only
 - No GitHub Actions workflow added (deploy is manual per current convention)
 - `VITE_DATA_BASE` must be set **at build time** (Vite bakes it into the bundle)
 - If R2 is down, prod breaks; `/data` fallback only helps local dev
+
+---
+
+## Resume State (saved 2026-07-19)
+
+### What's done
+- Phase 1 complete (3 commits on main): minify JSON, VITE_DATA_BASE, R2 upload script + docs
+- R2 bucket created, public dev-url enabled, CORS configured
+- **21 of 116 files uploaded** to R2 (files 1, 10–13, 100–114)
+- Wrangler installed globally, OAuth token valid until 2026-07-20T06:52:54Z
+- Resumable upload script: `scripts/upload_to_r2.py` (boto3 or wrangler method)
+
+### What's left
+- **95 files still need uploading** — list at `/tmp/r2-missing-final.txt`
+- Network is slow (~23KB/s upload to Cloudflare). Sequential wrangler uploads work but take ~4s overhead + bandwidth per file.
+- Once all 116 files uploaded: verify public URL, build with `VITE_DATA_BASE`, deploy to gh-pages
+
+### How to resume
+```bash
+# Option A: boto3 (faster, needs S3 API token in env)
+R2_ACCOUNT_ID=5c651e4916c8b8c31ba4f5b11ec7862b \
+R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
+R2_BUCKET=tafseer-nabulsi-data \
+uv run --with boto3 scripts/upload_to_r2.py
+
+# Option B: wrangler (slower, uses existing OAuth — no creds needed)
+uv run scripts/upload_to_r2.py --method wrangler
+
+# Option C: manual sequential (if wrangler has issues)
+for f in $(cat /tmp/r2-missing-final.txt); do
+  wrangler r2 object put "tafseer-nabulsi-data/data/$f" \
+    --file "pipeline/output/$f" --remote \
+    --content-type "application/json; charset=utf-8" \
+    --cache-control "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800"
+done
+```
+
+### After upload completes
+1. Verify: `curl -I https://pub-9f6e4a5270114d09a4eb9cdee8e9f840.r2.dev/data/1.json`
+2. Build: `VITE_DATA_BASE=https://pub-9f6e4a5270114d09a4eb9cdee8e9f840.r2.dev/data pnpm build`
+3. Deploy per `docs/how-to-deploy-to-github-pages.md`
+4. Update AGENTS.md with live R2 URL
