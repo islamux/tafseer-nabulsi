@@ -84,7 +84,7 @@ def save_surah_json(surah_id: int, data: dict) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"{surah_id}.json"
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
     return out_path
 
 
@@ -102,7 +102,7 @@ def save_index(surahs_data: list[dict]) -> Path:
 
     out_path = OUTPUT_DIR / "_index.json"
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(index, f, ensure_ascii=False, indent=2)
+        json.dump(index, f, ensure_ascii=False, separators=(",", ":"))
     return out_path
 
 

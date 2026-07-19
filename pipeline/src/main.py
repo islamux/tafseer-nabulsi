@@ -165,7 +165,7 @@ def main():
         report = generate_report(existing_data)
         report_path = OUTPUT_DIR / "_report.json"
         with open(report_path, "w", encoding="utf-8") as f:
-            json.dump(report, f, ensure_ascii=False, indent=2)
+            json.dump(report, f, ensure_ascii=False, separators=(",", ":"))
 
         logger.info("Report: %.1f%% coverage (%d/%d ayahs)",
                      report["coverage_pct"],
