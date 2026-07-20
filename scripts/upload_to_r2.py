@@ -70,14 +70,14 @@ def upload_wrangler(files_to_upload: list[Path]) -> int:
              "--file", str(f), "--remote",
              "--content-type", "application/json; charset=utf-8",
              "--cache-control", cache],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, timeout=600,
         )
         if result.returncode == 0:
             done += 1
+            print(f"  [{done}/{len(files_to_upload)}] {f.name} OK", flush=True)
         else:
             failed.append(f.name)
-        if done % 10 == 0 or done == len(files_to_upload):
-            print(f"  {done}/{len(files_to_upload)} uploaded ({len(failed)} failed)", flush=True)
+            print(f"  [{done}/{len(files_to_upload)}] {f.name} FAIL: {result.stderr[:100]}", flush=True)
 
     if failed:
         print(f"\nFailed files ({len(failed)}):", file=sys.stderr)
