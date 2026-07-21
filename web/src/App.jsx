@@ -20,7 +20,7 @@ export default function App() {
         <FavoritesProvider>
           <DataProvider>
             <SearchProvider>
-              <BrowserRouter>
+              <BrowserRouter basename={import.meta.env.BASE_URL}>
                 <Layout>
                   <Suspense fallback={<Spinner />}>
                     <Routes>
