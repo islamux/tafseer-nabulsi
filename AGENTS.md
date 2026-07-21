@@ -78,6 +78,29 @@ R2_ACCOUNT_ID=... R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
 
 Uploads all `pipeline/output/*.json` to `data/*.json` on R2 with `Content-Type: application/json; charset=utf-8` and a long-lived cache (`max-age=86400, s-maxage=31536000, stale-while-revalidate=604800`).
 
+### Worker (D1 bookmarks + reading progress API)
+
+Located in `workers/tafsir-api/`. Optional — the web app works without it (localStorage fallback).
+
+**One-time setup:**
+```bash
+cd workers/tafsir-api
+npx wrangler login
+npx wrangler d1 create tafseer-nabulsi
+# Copy the database_id from output into wrangler.jsonc
+npx wrangler d1 execute tafseer-nabulsi --file=src/schema.sql
+```
+
+**Deploy Worker:**
+```bash
+cd workers/tafsir-api && npx wrangler deploy
+```
+
+**Build web app with Worker URL:**
+```bash
+VITE_API_BASE=https://tafsir-api.<subdomain>.workers.dev/api pnpm build
+```
+
 ### One-time R2 setup (runbook)
 
 1. Cloudflare dashboard → R2 → create bucket (e.g. `tafseer-nabulsi-data`)

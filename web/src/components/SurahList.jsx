@@ -5,8 +5,9 @@ import { toArabicNum } from '../utils/arabic'
 import Spinner from './Spinner'
 
 export default function SurahList() {
-  const { index, indexError } = useData()
+  const { index, indexError, readingProgress } = useData()
   const [filter, setFilter] = useState('')
+  const hasStarted = (id) => readingProgress[id] != null
 
   const filtered = index.filter(s =>
     s.name.includes(filter) ||
@@ -49,6 +50,7 @@ export default function SurahList() {
         placeholder="ابحث عن سورة..."
         value={filter}
         onChange={e => setFilter(e.target.value)}
+        aria-label="تصفية قائمة السور"
         className="w-full mb-6 px-4 py-2.5 rounded-xl text-sm border-0 outline-none arabic-text transition-colors input-style"
       />
 
@@ -71,11 +73,18 @@ export default function SurahList() {
                 </p>
               </div>
             </div>
-            {surah.has_tafsir && (
-              <span className="text-xs px-2 py-1 rounded-full badge-accent">
-                تفسير
-              </span>
-            )}
+            <div className="flex items-center gap-1">
+              {hasStarted(surah.surah_id) && (
+                <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--hover-bg)', color: 'var(--accent)' }}>
+                  متابعة
+                </span>
+              )}
+              {surah.has_tafsir && (
+                <span className="text-xs px-2 py-1 rounded-full badge-accent">
+                  تفسير
+                </span>
+              )}
+            </div>
           </Link>
         ))}
       </div>

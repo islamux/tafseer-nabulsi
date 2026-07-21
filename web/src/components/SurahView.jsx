@@ -4,27 +4,36 @@ import { useData } from '../contexts/DataContext'
 import AyahCard from './AyahCard'
 import BismillahHeader from './BismillahHeader'
 import Spinner from './Spinner'
+import NotFound from './NotFound'
 import { toArabicNum } from '../utils/arabic'
 import { hasSeparateBismillah } from '../utils/quran'
+
+const TOTAL_SURAHS = 114
+const isValidSurahId = (id) => Number.isInteger(id) && id >= 1 && id <= TOTAL_SURAHS
 
 export default function SurahView() {
   const { id } = useParams()
   const surahId = parseInt(id, 10)
-  const { fetchSurah, index } = useData()
+  const { fetchSurah, index, saveReadingProgress } = useData()
   const [surah, setSurah] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   const surahMeta = index.find(surah => surah.surah_id === surahId)
+  const valid = isValidSurahId(surahId)
 
   useEffect(() => {
+    if (!valid) return
     let cancelled = false
     setLoading(true)
     setError(null)
 
     fetchSurah(surahId)
       .then(surahData => {
-        if (!cancelled) setSurah(surahData)
+        if (!cancelled) {
+          setSurah(surahData)
+          saveReadingProgress(surahId, 1)
+        }
       })
       .catch(err => {
         if (!cancelled) setError(err.message)
@@ -34,7 +43,9 @@ export default function SurahView() {
       })
 
     return () => { cancelled = true }
-  }, [surahId, fetchSurah])
+  }, [surahId, fetchSurah, valid])
+
+  if (!valid) return <NotFound />
 
   if (loading) {
     return <Spinner />
