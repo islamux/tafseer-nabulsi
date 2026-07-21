@@ -21,7 +21,7 @@ describe('App full render at /tafseer-nabulsi/', () => {
   })
 
   it('renders the surah list with data (not NotFound)', async () => {
-    window.history.replaceState({}, '', '/tafseer-nabulsi/')
+    window.history.replaceState({}, '', import.meta.env.BASE_URL)
     const { findByText, queryByText } = render(<App />)
 
     expect(await findByText('سور القرآن الكريم', {}, { timeout: 5000 })).toBeInTheDocument()
