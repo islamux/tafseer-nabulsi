@@ -1,0 +1,1 @@
+import{j as e,e as t,L as n}from"./index-C_xIwzGP.js";function a(){return e.jsxs(t,{emoji:"📭",title:"الصفحة غير موجودة",children:["الصفحة التي تبحث عنها غير متاحة",e.jsx(n,{to:"/",className:"mt-6 px-4 py-2 rounded-lg text-sm font-medium no-underline arabic-text badge-accent",children:"العودة للرئيسية"})]})}export{a as default};
