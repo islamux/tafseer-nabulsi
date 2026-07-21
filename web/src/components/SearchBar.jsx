@@ -40,6 +40,7 @@ export default function SearchBar() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
+          aria-label="بحث في القرآن والتفسير"
           className="flex-1 px-4 py-2.5 rounded-xl text-sm border-0 outline-none arabic-text input-style"
         />
         <button

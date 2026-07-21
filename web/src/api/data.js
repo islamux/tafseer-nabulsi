@@ -2,15 +2,31 @@ import { stripLeadingBasmala } from '../utils/arabic'
 import { hasSeparateBismillah } from '../utils/quran'
 
 const DATA_BASE = import.meta.env.VITE_DATA_BASE || '/data'
+const FETCH_TIMEOUT_MS = 10_000
+
+async function fetchJson(url) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  try {
+    const resp = await fetch(url, { signal: controller.signal })
+    if (!resp.ok) throw new Error(`Failed to load ${url}: ${resp.status}`)
+    return await resp.json()
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`Request timed out after ${FETCH_TIMEOUT_MS / 1000}s: ${url}`)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
 
 let indexCache = null
 const surahCache = new Map()
 
 export async function loadIndex() {
   if (indexCache) return indexCache
-  const resp = await fetch(`${DATA_BASE}/_index.json`)
-  if (!resp.ok) throw new Error(`Failed to load index: ${resp.status}`)
-  indexCache = await resp.json()
+  indexCache = await fetchJson(`${DATA_BASE}/_index.json`)
   return indexCache
 }
 
@@ -23,9 +39,7 @@ function normalizeSurah(surahData, id) {
 
 export async function loadSurah(id) {
   if (surahCache.has(id)) return surahCache.get(id)
-  const resp = await fetch(`${DATA_BASE}/${id}.json`)
-  if (!resp.ok) throw new Error(`Failed to load surah ${id}: ${resp.status}`)
-  const surahData = normalizeSurah(await resp.json(), id)
+  const surahData = normalizeSurah(await fetchJson(`${DATA_BASE}/${id}.json`), id)
   surahCache.set(id, surahData)
   return surahData
 }

@@ -69,7 +69,6 @@
 
 html, body {
   direction: rtl;
-  text-align: right;
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);

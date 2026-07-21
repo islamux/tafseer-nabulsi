@@ -15,14 +15,17 @@ const LABELS = {
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
 
+  const label = LABELS[theme]
+
   return (
     <button
       onClick={toggleTheme}
       className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors input-style"
-      title={`Current: ${LABELS[theme]}. Click to switch.`}
+      aria-label={`السمة الحالية: ${label}. اضغط للتبديل.`}
+      title={`Current: ${label}. Click to switch.`}
     >
-      <span>{ICONS[theme]}</span>
-      <span className="hidden sm:inline">{LABELS[theme]}</span>
+      <span aria-hidden="true">{ICONS[theme]}</span>
+      <span className="hidden sm:inline" aria-hidden="true">{label}</span>
     </button>
   )
 }
