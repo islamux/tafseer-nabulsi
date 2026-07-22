@@ -1,7 +1,7 @@
 import { stripLeadingBasmala } from '../utils/arabic'
 import { hasSeparateBismillah } from '../utils/quran'
 
-const DATA_BASE = import.meta.env.VITE_DATA_BASE || '/data'
+const DATA_BASE = import.meta.env.VITE_DATA_BASE || (import.meta.env.DEV ? '/data' : 'https://pub-9f6e4a5270114d09a4eb9cdee8e9f840.r2.dev/data')
 const FETCH_TIMEOUT_MS = 10_000
 
 async function fetchJson(url) {
