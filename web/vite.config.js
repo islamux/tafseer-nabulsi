@@ -21,7 +21,7 @@ function cspApiOriginPlugin() {
 }
 
 export default defineConfig({
-  base: process.env.VITE_BASE_PATH || '/',
+  base: '/tafseer-nabulsi/',
   plugins: [react(), cspApiOriginPlugin()],
   test: {
     environment: 'jsdom',
