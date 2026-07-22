@@ -3,7 +3,7 @@
   "name": "tafseer-nabulsi",
   "compatibility_date": "2026-07-22",
   "assets": {
-    "directory": "./web/dist",
+    "directory": "./dist",
     "not_found_handling": "single-page-application"
   }
 }
