@@ -1,6 +1,28 @@
 # Supabase Schema — Tafsir Nabulsi
 
-Shared database schema for the Quran Tafsir project. Both the React web app and the Kotlin Android app connect to this Supabase instance.
+> **Status — historical / reference only.** This schema is **not wired into the web app.**
+> On 2026-07-21 the web app migrated its bookmarks + reading-progress backend from
+> Supabase (auth + Postgres) to a Cloudflare Worker + D1 (`workers/tafsir-api/`).
+> These migrations are retained as a **reference for the planned Kotlin/Android app**.
+
+## Relationship to the web app
+
+The web app no longer connects to Supabase. Its live backend is `workers/tafsir-api/`
+(device-ID keyed, no auth). The two schemas have **diverged** and are not cross-compatible:
+
+| | This Supabase schema | Web app's D1 schema (`workers/.../schema.sql`) |
+|---|---|---|
+| Identity | `user_id uuid` (Supabase Auth, RLS via `auth.uid()`) | `device_id TEXT` (no auth, no PII) |
+| `bookmarks.note` | present (`text`) | absent |
+| `profiles` table | present | absent |
+| Access control | Postgres Row Level Security | CORS allow-list (no row-level security) |
+
+**Forward-looking note.** If the Kotlin app adopts this Supabase schema, its bookmarks and
+reading progress will **not** sync with the web app's Worker+D1 data — the identity models
+differ (user vs device). To enable cross-platform sync later, pick one backend as the single
+source of truth (or build an explicit bridge). See
+[`docs/all-cloudflare-migration-status.md`](../docs/all-cloudflare-migration-status.md) for the
+migration rationale.
 
 ## Tables
 

@@ -3,7 +3,14 @@
 > **Format:** 4 rounds × 25+ questions = 100+ total
 > **Target:** Junior→Mid candidate
 > **Style:** FAANG/Big Tech — architectural depth, system design, debugging, and coding
-> **Project:** Arabic React 19 SPA (Vite + Tailwind) for Quran + Dr. Nabulsi's tafsir, fed by a Python scraping pipeline, with a staged Supabase backend
+> **Project:** Arabic React 19 SPA (Vite + Tailwind) for Quran + Dr. Nabulsi's tafsir, fed by a Python scraping pipeline, with a Cloudflare Worker + D1 backend (Supabase schema staged for the planned Kotlin app)
+
+> **Architecture note (2026-07-21):** Several answers below discuss **wiring Supabase into the
+> *web app*** for favorites/progress sync (e.g. Q2, Q7, Q8, Q80, Q87, **Q96, Q100**). That plan was
+> **superseded** — the web app now syncs via Cloudflare Worker + D1 (`workers/tafsir-api/`,
+> device-ID keyed, no auth). `FavoritesContext` / `useFavorites()` are unchanged. Supabase is
+> retained as a reference for the **planned Kotlin app**; see `supabase/README.md`. The
+> step-by-step recipes in Q96 / Q100 are flagged individually below.
 
 ---
 
@@ -422,6 +429,8 @@ This synchronously applies the saved theme before the browser paints, so the fir
 
 **A:** (1) Add Supabase auth (email/OAuth) via `@supabase/supabase-js`. (2) On sign-in, read the user's `bookmarks` and `reading_progress` rows (RLS guarantees isolation). (3) Refactor `FavoritesContext` to write to both localStorage (offline cache) and Supabase (source of truth) — optimistic local update, background sync. (4) On first login, merge existing localStorage favorites into Supabase so nothing's lost. (5) The `reading_progress` trigger auto-maintains `updated_at`. Crucially, the *component* code (`useFavorites()`) stays unchanged — the context abstracts the storage swap. This is exactly why the contexts were designed with clean hooks.
 
+> **Update (2026-07-21):** This path was **not taken**. The project adopted a Cloudflare Worker + D1 backend (`workers/tafsir-api/`, device-ID keyed, no auth) instead of Supabase auth. `FavoritesContext` still abstracts storage and `useFavorites()` is unchanged — so the design point (contexts isolate the storage swap) holds. Supabase remains a reference for the planned Kotlin app; see [`supabase/README.md`](../supabase/README.md).
+
 ### Q97. How would you implement an "Ayah of the Day" feature with notifications?
 
 **A:** (1) A selection mechanism — deterministic by date (`ayahs[dayOfYear % total]`) so it's stable per day without state. (2) Display on the home page (a highlighted card linking to the ayah). (3) For push notifications: make the app a PWA (service worker + VAPID keys via the Push API), with a serverless cron (GitHub Actions or Supabase Scheduled Function) that picks the day's ayah and sends a push to subscribed users. (4) User opt-in via the browser permission prompt, storing the subscription server-side. Complexity is medium — PWA setup is the prerequisite. Without push, a home-page "ayah of the day" is trivial and needs no backend.
@@ -437,6 +446,8 @@ This synchronously applies the saved theme before the browser paints, so the fir
 ### Q100. How would you add cross-device bookmark sync using the existing Supabase RLS setup?
 
 **A:** The `bookmarks` table and its RLS policy (`auth.uid() = user_id`) already exist. Steps: (1) Add Supabase auth to the web app. (2) In `FavoritesContext`, after login, fetch the user's `bookmarks` rows and hydrate the in-memory favorites object. (3) On `toggleFavorite`, optimistically update local state, then `upsert`/`delete` the row in `bookmarks` (the RLS policy ensures a user can only touch their own rows — no extra auth checks in app code). (4) On first login, push any existing localStorage favorites to Supabase. (5) Listen to Postgres changes (Supabase realtime) to sync updates from other devices live. The `FavoritesContext` interface (`toggleFavorite`, `isFavorite`) stays identical — only its internals move from localStorage to Supabase.
+
+> **Update (2026-07-21):** This path was **not taken**. The web app now syncs bookmarks via Cloudflare Worker + D1 (`workers/tafsir-api/`, device-ID keyed, no auth), not Supabase auth. The `FavoritesContext` interface is unchanged; only the storage backend differs. Supabase remains a reference for the planned Kotlin app; see [`supabase/README.md`](../supabase/README.md).
 
 ---
 
