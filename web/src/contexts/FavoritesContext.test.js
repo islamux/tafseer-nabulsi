@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { mergeFavorites } from './FavoritesContext'
 
 describe('FavoritesContext serialization', () => {
   beforeEach(() => {
@@ -36,5 +37,23 @@ describe('FavoritesContext serialization', () => {
       result = {}
     }
     expect(result).toEqual({})
+  })
+})
+
+describe('mergeFavorites (sync merge — no data loss)', () => {
+  it('unions local and remote, keeping entries only on one side', () => {
+    const local = { '2': new Set([5, 6]), '3': new Set([1]) }
+    const remote = { '2': new Set([6, 7]), '4': new Set([9]) }
+    expect(mergeFavorites(local, remote)).toEqual({
+      '2': new Set([5, 6, 7]),
+      '3': new Set([1]),
+      '4': new Set([9]),
+    })
+  })
+
+  it('handles empty inputs', () => {
+    expect(mergeFavorites({}, {})).toEqual({})
+    expect(mergeFavorites({ '1': new Set([1]) }, {})).toEqual({ '1': new Set([1]) })
+    expect(mergeFavorites({}, { '1': new Set([1]) })).toEqual({ '1': new Set([1]) })
   })
 })
