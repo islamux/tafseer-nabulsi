@@ -15,7 +15,7 @@ function cspApiOriginPlugin() {
   return {
     name: 'csp-api-origin',
     transformIndexHtml(html) {
-      return html.replaceAll('%VITE_API_ORIGIN%', origin)
+      return html.replaceAll('__CSP_API_ORIGIN__', origin)
     },
   }
 }
