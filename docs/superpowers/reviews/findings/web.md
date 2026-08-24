@@ -7,7 +7,8 @@ Reviewer method: every file under `web/src/` read in full; data-shape claims cro
 Severity: Critical = crash/data loss/security hole · High = user-visible incorrectness · Medium = maintainability · Low = polish.
 Effort: S < 1h · M = hours · L = days.
 
-**Totals:** 0 Critical · 1 High · 7 Medium · 5 Low.
+**Totals:** 14 findings — 0 Critical · 1 High · 7 Medium · 6 Low.
+By dimension: bugs 4 · clean-code 3 · improvements 5 · solid 2.
 
 No off-by-one issues found in surah/ayah indexing (`isValidSurahId` 1–114 correct; ayah numbers flow from `numberInSurah` consistently). No RTL string-handling bug found in `utils/arabic.js`; `stripLeadingBasmala` correctly skips tashkeel and normalizes alef variants while walking.
 
