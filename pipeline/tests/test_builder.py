@@ -78,6 +78,20 @@ def test_range_inheritance_direct_takes_precedence():
     assert data["ayahs"][0]["tafsir_long"] == "range text"
 
 
+def test_save_index_uses_surah_id():
+    from src.merge.builder import save_index
+    import json
+
+    surahs = [
+        {"surah_id": 5, "name": "المائدة", "ayahs": [
+            {"number": 1, "text": "t", "tafsir_short": "", "tafsir_long": "body", "media": {}},
+        ]},
+    ]
+    path = save_index(surahs)
+    index = json.loads(path.read_text(encoding="utf-8"))
+    assert index[0]["surah_id"] == 5
+
+
 def test_generate_report():
     surah_data = [
         {
