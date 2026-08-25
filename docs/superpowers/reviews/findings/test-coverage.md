@@ -132,9 +132,9 @@ Severity: Critical = no tests on data-integrity / auth / sync code · High = no 
 ### TST-009 | Medium | test-coverage | M
 
 - **Location:** `web/src/App.integration.test.jsx`
-- **Evidence:** The integration test mocks `globalThis.fetch` to return a valid index (line 12–15) and tests only the happy path: surah list renders. It does not test: (1) fetch failure → error state in SurahList, (2) navigating to `/surah/:id` → surah view loads, (3) navigating to `/search` → SearchBar renders, (4) navigating to unknown route → NotFound renders, (5) lazy-load fallback `<Suspense>` behavior.
-- **Why it matters:** The only integration-level test covers a single page with a single mock. A routing regression, lazy-load failure, or provider wiring bug (e.g. missing SearchProvider around SearchBar) would not be caught.
-- **Suggested fix:** Add tests for: fetch rejection → error UI shown; navigation to `/surah/1` → SurahView renders with ayah data; navigation to `/search` → SearchBar renders; navigation to `/unknown` → NotFound renders; Suspense fallback shown during lazy load.
+- **Evidence:** The integration test (`App.integration.test.jsx`) mocks `globalThis.fetch` to return a valid index (line 12–15) and tests only the happy path: surah list renders at `/tafseer-nabulsi/`. `App.routing.test.jsx` separately covers basename routing behavior, so routing is not the gap here. What remains untested is the full-provider stack under navigation: (1) fetch failure → error state in SurahList, (2) navigating to `/surah/:id` → SurahView renders inside DataProvider/FavoritesProvider, (3) navigating to `/search` → SearchBar renders inside SearchProvider, (4) lazy-load fallback `<Suspense>` behavior. The integration test uses `vi.spyOn(globalThis, 'fetch')` but never exercises the real DataContext, SearchContext, or FavoritesContext wiring that App.jsx composes around Routes.
+- **Why it matters:** A provider-wiring regression (e.g. missing SearchProvider around SearchBar route, or DataContext error state not propagating to SurahList) would not be caught. The integration test covers a single page with a single mock; it does not verify that the full provider tree works end-to-end across routes.
+- **Suggested fix:** Add integration tests for: fetch rejection → error UI shown; navigation to `/surah/1` → SurahView renders with ayah data via real DataContext; navigation to `/search` → SearchBar renders inside real SearchProvider; navigation to `/unknown` → NotFound renders; Suspense fallback shown during lazy load.
 - **Verified:** yes — test file contains only one `it()` block testing the happy path.
 
 ### TST-010 | Medium | test-coverage | S
@@ -198,6 +198,14 @@ Severity: Critical = no tests on data-integrity / auth / sync code · High = no 
 | TST-005 | PIP-008 (dead regex in _clean_text) | TST-005 would catch PIP-008's dead code if tests existed |
 | TST-006 | PIP-004, PIP-012 (scraper silent failures, dead code) | Complementary — TST-006 covers test gap for the live code paths |
 | TST-007 | WEB-004, WEB-005, WEB-006 (FavoritesContext design) | Complementary — TST-007 covers test gap for scenarios that caused historical bugs |
+| TST-008 | WEB-013 (invalid localStorage theme) | TST-008's readStoredTheme regression test would catch WEB-013's silent CSS degradation |
+| TST-009 | No overlap — App.routing.test.jsx covers routing; TST-009 covers provider wiring under navigation | Distinct scope — routing tests exist but full-provider integration across routes does not |
+| TST-010 | No overlap — search.test.js covers `searchLocal` pure function; TST-010 covers SearchBar component states | Distinct scope — pure-function tests exist but component interaction tests do not |
+| TST-011 | WEB-011 (scroll restoration missing deps) | TST-011's scroll-restoration regression test would catch WEB-011's late-arrival race condition |
+| TST-012 | No overlap — no other finding covers ErrorBoundary | Standalone gap — last-resort error UI has zero coverage |
+| TST-013 | No overlap — WEB-008 covers search index memory/perf; TST-013 covers SearchContext dedup logic | Distinct scope — performance concern vs correctness of dedup |
+| TST-014 | PIP-010 (mapper.py malformed CSV raises ValueError) | TST-014's CSV edge-case tests would catch PIP-010's unhandled ValueError |
+| TST-015 | No overlap — no other finding covers quran/parser.py test gap | Standalone gap — external API JSON contract untested |
 
 ---
 
