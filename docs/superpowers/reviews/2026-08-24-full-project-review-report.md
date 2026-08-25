@@ -13,9 +13,9 @@
 | Severity | Count |
 |----------|-------|
 | Critical | 3 |
-| High | 8 |
-| Medium | 34 |
-| Low | 41 |
+| High | 14 |
+| Medium | 35 |
+| Low | 34 |
 | **Total** | **86** |
 
 ### Top 5 risks (plain language)
@@ -63,7 +63,7 @@
 | WEB-005 | Medium | improvements | web | `web/src/contexts/FavoritesContext.jsx:49` | M |
 | WEB-006 | Medium | bugs | web | `web/src/contexts/FavoritesContext.jsx:31` | S |
 | WEB-007 | Medium | improvements | web | `web/src/components/SearchBar.jsx:84` | S |
-| WEB-008 | Medium | improvements | web | `web/src/api/search.js:12` | L |
+| WEB-008 | High | improvements | web | `web/src/api/search.js:12` | L |
 | WEB-009 | Medium | improvements | web | `web/src/api/data.js:52` | S |
 | WEB-010 | Medium | solid | web | `web/src/contexts/DataContext.jsx:16` | S |
 | WRK-002 | Medium | security | worker | `workers/tafsir-api/src/index.js:118-120` | S |
@@ -286,6 +286,19 @@
 - **Suggested fix:** Darken light accent to ≈`#00695c` (recompute ≥4.5:1 on both `#ffffff` and `#f5f5f5`) or restrict `text-accent` to ≥18.7px bold/large text and move small interactive text to `text-primary`; bump sepia `--bg-secondary` lighter or use a darker accent on secondary surfaces; darken `--text-on-accent` pairing by deepening `#00897b`.
 - **Verified:** yes
 
+#### WEB-008 | High | improvements | L
+
+- **Location:** `web/src/api/search.js:12`
+- **Evidence:**
+  ```js
+  searchIndexCache = allSurahs.flatMap(surah =>
+    surah.ayahs.map(ayah => ({ ... })))
+  ```
+  built on `loadAllSurahs()` (`web/src/api/data.js:47-60`)
+- **Why it matters:** The first search triggers fetching all 114 surah files — the entire corpus including full `tafsir_long` for every ayah (dataset ~388MB total) — over the network into memory, then scans it linearly per query. On mobile this means heavy bandwidth, multi-second-to-minute wait, and a large retained heap. It also makes search unusable offline-first and couples UX latency to total dataset size.
+- **Suggested fix:** Precompute a sharded, normalized, minified search index at pipeline time (e.g. one `_search/{a-z}.json` shard with only `surah_id/ayah_number/tokens`), fetch shards lazily per query prefix; or move search behind the Worker/D1. Short term: drop `tafsir_long` full text from the in-memory copy after indexing.
+- **Verified:** yes — independently re-traced by the Task 6 performance auditor: the data.js fetch path was verified at `data.js:24-25` (cache maps), `data.js:40-44` (loadSurah/fetchJson), and `data.js:52-57` (loadAllSurahs sequential loop); the ~388MB corpus size was confirmed against AGENTS.md; the linear-scan search path was verified at `search.js:8-24` (buildSearchIndex + searchLocal). The performance lens warranted elevation to High due to the first-search cost on a core user-facing action.
+
 #### TST-004 | High | test-coverage | M
 
 - **Location:** `workers/tafsir-api/src/index.js`
@@ -464,20 +477,6 @@
 - **Why it matters:** Search results promise a specific ayah but the link lands at the top of the surah; the user must re-find the ayah manually. `SurahView` already renders `data-ayah={ayah.number}` nodes (line 127), so the target anchor exists — only the wiring is missing.
 - **Suggested fix:** Link to `/surah/${result.surah_id}#ayah-${result.ayah_number}`, give each wrapper div a matching `id={`ayah-${ayah.number}`}` in `SurahView.jsx:125`, and let the existing scroll logic handle positioning.
 - **Verified:** no
-
-#### WEB-008 | Medium | improvements | L
-
-- **Location:** `web/src/api/search.js:12`
-- **Evidence:**
-  ```js
-  searchIndexCache = allSurahs.flatMap(surah =>
-    surah.ayahs.map(ayah => ({ ... })))
-  ```
-  built on `loadAllSurahs()` (`web/src/api/data.js:47-60`)
-- **Why it matters:** The first search triggers fetching all 114 surah files — the entire corpus including full `tafsir_long` for every ayah (dataset ~388MB total) — over the network into memory, then scans it linearly per query. On mobile this means heavy bandwidth, multi-second-to-minute wait, and a large retained heap. It also makes search unusable offline-first and couples UX latency to total dataset size.
-- **Suggested fix:** Precompute a sharded, normalized, minified search index at pipeline time (e.g. one `_search/{a-z}.json` shard with only `surah_id/ayah_number/tokens`), fetch shards lazily per query prefix; or move search behind the Worker/D1. Short term: drop `tafsir_long` full text from the in-memory copy after indexing.
-- **Verified:** no
-- **Performance-lens note:** performance.md recommends elevating this from Medium to High (see Section 4 for the rationale).
 
 #### WEB-009 | Medium | improvements | S
 
@@ -817,7 +816,7 @@
 - **Location:** `pipeline/src/tafsir/scraper.py:46`
 - **Evidence:** Duplicated link extraction logic and dead helpers (`extract_lesson_links`, `extract_lesson_content`): grep shows no callers.
 - **Why it matters:** Two near-identical link extractors exist; the production flow uses only the category_index version. Duplicates drift, and ~70 lines of dead code mislead readers.
-- **Suggested fix:** Delete `extract_story_links_from_category`, `extract_lesson_links`, and `extract_lesson_content`; keep `parse_stories_from_html` as the canonical extractor.
+- **Suggested fix:** Delete `extract_story_links_from_category` (only reachable from the dead `extract_lesson_links`, which itself has no callers), `extract_lesson_links`, and `extract_lesson_content`; keep `parse_stories_from_html` as the canonical extractor.
 - **Verified:** no
 
 #### PIP-014 | Low | bugs | S
@@ -1115,7 +1114,7 @@ Grouped by theme to minimize context-switching:
 
 These findings require architectural decisions or product direction that should not be made unilaterally:
 
-- **WEB-008** (Medium/improvements, L effort) — **The dominant performance issue: first search fetches the entire ~388MB corpus sequentially.** The performance lens warrants High (see below), but the fix — precomputing a sharded search index at pipeline time — is a cross-cutting architectural change touching both pipeline and web. This should be a planned work item, not a hotfix. **My position on the High elevation:** I agree with performance.md's recommendation that WEB-008 warrants High severity. The first search is a core user-facing action that triggers ~388MB of sequential network requests on the main thread. On a typical mobile connection (5 Mbps), this is a multi-minute wait; on 3G, it is effectively unusable. The user has no indication of what is happening beyond a percentage counter. While the effort is L (architectural, pipeline+web), the *impact* on a common interaction justifies High. I present this elevation in the severity table above and recommend it be treated as High priority in Phase C if the architectural scope is approved.
+- **WEB-008** (High/improvements, L effort) — **The dominant performance issue: first search fetches the entire ~388MB corpus sequentially.** The fix — precomputing a sharded search index at pipeline time — is a cross-cutting architectural change touching both pipeline and web. This should be a planned work item, not a hotfix. The first search is a core user-facing action that triggers ~388MB of sequential network requests on the main thread. On a typical mobile connection (5 Mbps), this is a multi-minute wait; on 3G, it is effectively unusable. The user has no indication of what is happening beyond a percentage counter. While the effort is L (architectural, pipeline+web), the *impact* on a common interaction justifies High severity.
 - **WEB-005** (Medium/improvements, M effort) — Tombstone-based sync deletion. Requires API schema change + client merge rework. Product decision needed on sync conflict resolution strategy.
 - **WEB-007** (Medium/improvements, S effort) — Ayah deep-linking from search results. Technically simple but requires product confirmation that the UX flow is desired.
 - **WRK-012** + **WRK-013** (Medium/improvements, M effort) — Pagination and batch endpoints. Requires API contract change; coordinate with client.
@@ -1123,7 +1122,7 @@ These findings require architectural decisions or product direction that should 
 
 ### Backlog (Low severity)
 
-All 41 Low-severity findings are individually minor polish, dead-code cleanup, or documentation fixes. None blocks shipping. They can be batched into periodic maintenance passes.
+All 34 Low-severity findings are individually minor polish, dead-code cleanup, or documentation fixes. None blocks shipping. They can be batched into periodic maintenance passes.
 
 ---
 
@@ -1150,7 +1149,7 @@ Every subsystem × dimension combination is explicitly covered below. Combinatio
 | Dimension | web | pipeline | worker |
 |-----------|-----|----------|--------|
 | **bugs** | WEB-003, 006, 007, 011, 012 | PIP-001, 002, 003, 004, 005, 007, 008, 009, 010, 014, 015, 017, 020 | WRK-003, 005, 006, 007 |
-| **security** | SEC-001, 002, 003, 004, 005; WEB-003 (search CPU waste, adj.) | PIP-006 | WRK-001, 002, 004, 009 |
+| **security** | SEC-001, 002, 003, 004, 005 | PIP-006 | WRK-001, 002, 004, 009 |
 | **clean-code** | WEB-013, 014, 015 | PIP-012, 016, 018, 021 | WRK-008 |
 | **improvements** | WEB-005, 007, 008, 009, 016 | PIP-013, 019 | WRK-010, 011, 012, 013 |
 | **solid** | WEB-004, 010 | PIP-011 | **clean** |
@@ -1172,7 +1171,7 @@ Every subsystem × dimension combination is explicitly covered below. Combinatio
 |-----------|--------|
 | Every subsystem × dimension has explicit coverage | ✅ Covered in matrix (Section 6) |
 | Every Critical has `Verified: yes` | ✅ TST-001 ✓, TST-002 ✓, TST-003 ✓ |
-| Every High has `Verified: yes` | ✅ All 8 High findings verified (WRK-001 ✓, PIP-001–005 ✓, WEB-003 ✓, SEC-003 ✓, A11Y-001 ✓, A11Y-002 ✓, TST-004–006 ✓) |
+| Every High has `Verified: yes` | ✅ All 14 High findings verified (WRK-001 ✓, PIP-001–005 ✓, WEB-003 ✓, WEB-008 ✓, SEC-003 ✓, A11Y-001 ✓, A11Y-002 ✓, TST-004–006 ✓) |
 | Every finding cites `path:line` | ✅ All findings include location with line number |
 | Corrections applied | ✅ See notes below |
 
@@ -1185,6 +1184,7 @@ Every subsystem × dimension combination is explicitly covered below. Combinatio
 5. **WEB-009** — Corrected evidence quote from `loaded.push(surahId)` to `loaded.push(surahData)` (matching actual source at `data.js:53`).
 6. **PRF-003 / PRF-004** — Added "raw/uncompressed JSON; wire bytes smaller under CDN compression" hedge when referencing corpus size and DOM node estimates.
 7. **WEB-008** — Presented reasoned position on performance.md's High elevation recommendation in Section 4 (Recommended fix order); elevated to High in severity count and fix order.
+8. **WEB-008 (fix round 1)** — Promoted from Medium to High consistently across findings table, detailed findings (moved block from §3.3 to §3.2), and executive summary. Added `Verified: yes` with the Task 6 performance auditor's independent verification basis. Corrected the executive summary severity counts (previously stated 8 High / 34 Medium / 41 Low; actual was 13 High / 36 Medium / 34 Low before this promotion; now 14 High / 35 Medium / 34 Low). Removed WEB-003 from coverage matrix security column (IMP-1). Clarified PIP-012 suggested fix to note `extract_story_links_from_category` is only reachable from dead code (IMP-3).
 
 ---
 
