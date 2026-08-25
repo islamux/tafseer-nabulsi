@@ -9,6 +9,7 @@ Handles patterns like:
 """
 
 import re
+import warnings
 
 
 def parse_ayah_range(title: str) -> list[int]:
@@ -58,4 +59,5 @@ def parse_ayah_range(title: str) -> list[int]:
     if fallback:
         return [int(fallback.group(1))]
 
+    warnings.warn(f"Unrecognized ayah range pattern in title: {title!r}")
     return []

@@ -73,3 +73,12 @@ class TestEdgeCases:
 
     def test_title_with_only_number(self):
         assert parse_ayah_range("الآيات 5-10") == list(range(5, 11))
+
+    def test_unrecognized_title_warns(self):
+        import warnings
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            result = parse_ayah_range("some completely unrelated title")
+            assert result == []
+            assert len(w) == 1
+            assert "unrecognized" in str(w[0].message).lower()

@@ -92,10 +92,11 @@ def save_index(surahs_data: list[dict]) -> Path:
     """Save the surah index (_index.json)."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     index = []
-    for i, s in enumerate(surahs_data, 1):
+    for s in surahs_data:
+        sid = s["surah_id"]
         index.append({
-            "surah_id": i,
-            "name": SURAH_NAMES[i - 1],
+            "surah_id": sid,
+            "name": SURAH_NAMES[sid - 1],
             "ayah_count": len(s["ayahs"]),
             "has_tafsir": any(a["tafsir_long"] for a in s["ayahs"]),
         })
