@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { getDeviceId, fetchBookmarks, addBookmark, removeBookmark } from '../api/worker'
 
 const FavoritesContext = createContext()
@@ -43,17 +43,39 @@ function remoteToFavorites(bookmarks) {
   return result
 }
 
+export function mergeFavorites(local, remote) {
+  const merged = {}
+  for (const key of new Set([...Object.keys(local), ...Object.keys(remote)])) {
+    merged[key] = new Set([...(local[key] || []), ...(remote[key] || [])])
+  }
+  return merged
+}
+
 export function FavoritesProvider({ children }) {
   const [favorites, setFavorites] = useState(loadFavorites)
   const [deviceId, setDeviceId] = useState(null)
+  const localAtMountRef = useRef(favorites)
 
   useEffect(() => {
     const did = getDeviceId()
     setDeviceId(did)
     if (!did) return
+    let cancelled = false
     fetchBookmarks(did).then(bookmarks => {
-      if (bookmarks) setFavorites(remoteToFavorites(bookmarks))
+      if (cancelled || !bookmarks) return
+      const remote = remoteToFavorites(bookmarks)
+      setFavorites(prev => mergeFavorites(prev, remote))
+      const local = localAtMountRef.current
+      for (const key of Object.keys(local)) {
+        const remoteSet = remote[key]
+        for (const ayah of local[key]) {
+          if (!remoteSet || !remoteSet.has(ayah)) {
+            addBookmark(did, Number(key), ayah)
+          }
+        }
+      }
     })
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {

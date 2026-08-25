@@ -25,11 +25,6 @@ export function ThemeProvider({ children }) {
     }
   }, [theme])
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('tafsir-theme', theme)
-  }, [theme])
-
   const toggleTheme = () => {
     setTheme(prev => {
       const idx = THEMES.indexOf(prev)

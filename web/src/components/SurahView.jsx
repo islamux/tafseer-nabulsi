@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
 import AyahCard from './AyahCard'
@@ -14,10 +14,13 @@ const isValidSurahId = (id) => Number.isInteger(id) && id >= 1 && id <= TOTAL_SU
 export default function SurahView() {
   const { id } = useParams()
   const surahId = parseInt(id, 10)
-  const { fetchSurah, index, saveReadingProgress } = useData()
+  const { fetchSurah, index, readingProgress, saveReadingProgress } = useData()
   const [surah, setSurah] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  const ayahEls = useRef({})
+  const lastSeenAyah = useRef(0)
 
   const surahMeta = index.find(surah => surah.surah_id === surahId)
   const valid = isValidSurahId(surahId)
@@ -30,10 +33,7 @@ export default function SurahView() {
 
     fetchSurah(surahId)
       .then(surahData => {
-        if (!cancelled) {
-          setSurah(surahData)
-          saveReadingProgress(surahId, 1)
-        }
+        if (!cancelled) setSurah(surahData)
       })
       .catch(err => {
         if (!cancelled) setError(err.message)
@@ -44,6 +44,42 @@ export default function SurahView() {
 
     return () => { cancelled = true }
   }, [surahId, fetchSurah, valid])
+
+  useEffect(() => {
+    if (!surah) return
+    const saved = readingProgress[surahId]
+    if (saved && saved > 1 && ayahEls.current[saved]) {
+      ayahEls.current[saved].scrollIntoView({ block: 'start' })
+    }
+  }, [surah])
+
+  useEffect(() => {
+    if (!surah) return
+    lastSeenAyah.current = 0
+    let timer = null
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const num = Number(entry.target.dataset.ayah)
+            if (num > lastSeenAyah.current) {
+              lastSeenAyah.current = num
+              if (timer) clearTimeout(timer)
+              timer = setTimeout(() => saveReadingProgress(surahId, num), 1500)
+            }
+          }
+        }
+      },
+      { rootMargin: '0px 0px -75% 0px', threshold: 0 }
+    )
+    for (const el of Object.values(ayahEls.current)) {
+      if (el) observer.observe(el)
+    }
+    return () => {
+      if (timer) clearTimeout(timer)
+      observer.disconnect()
+    }
+  }, [surah])
 
   if (!valid) return <NotFound />
 
@@ -86,7 +122,15 @@ export default function SurahView() {
 
       <div>
         {surah?.ayahs?.map(ayah => (
-          <AyahCard key={ayah.number} ayah={ayah} surahId={surahId} />
+          <div
+            key={ayah.number}
+            data-ayah={ayah.number}
+            ref={el => {
+              ayahEls.current[ayah.number] = el
+            }}
+          >
+            <AyahCard ayah={ayah} surahId={surahId} />
+          </div>
         ))}
       </div>
     </div>

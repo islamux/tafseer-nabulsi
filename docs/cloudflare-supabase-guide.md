@@ -1,5 +1,14 @@
 # Cloudflare + Supabase Guide (Free Tier)
 
+> **⚠️ Superseded (web app).** The web app's Supabase integration described in this guide
+> (sections 6–7: `@supabase/supabase-js`, `web/src/api/supabase.js`, auth-based `FavoritesContext`)
+> was **never shipped**. On 2026-07-21 the web app adopted a Cloudflare Worker + D1 backend
+> (`workers/tafsir-api/`, device-ID keyed, no auth). See
+> [`docs/all-cloudflare-migration-status.md`](./all-cloudflare-migration-status.md).
+>
+> This guide is retained as a **reference for the planned Kotlin/Android app**, which may still
+> use Supabase. The Cloudflare free-tier and R2 guidance (sections 1–5) remains accurate.
+
 A decision guide and hands-on setup walkthrough for this project. Covers **when to use Cloudflare vs Supabase vs both**, the free-tier limits that actually matter, and a step-by-step wiring of Supabase auth + bookmark sync into the web app.
 
 ---
