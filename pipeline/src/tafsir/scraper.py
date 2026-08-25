@@ -1,6 +1,7 @@
 """Scrape lesson pages from nabulsi.com with polite rate limiting."""
 
 import re
+import warnings
 from urllib.parse import urljoin, unquote
 
 import requests
@@ -69,7 +70,8 @@ def fetch_story_page(url: str) -> dict | None:
     """
     try:
         html = fetch_page(url)
-    except Exception:
+    except Exception as e:
+        warnings.warn(f"Failed to fetch story page {url}: {e}")
         return None
 
     soup = BeautifulSoup(html, "lxml")
