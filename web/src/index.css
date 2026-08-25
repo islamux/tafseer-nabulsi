@@ -42,11 +42,11 @@
   --bg-secondary: #1e1e1e;
   --text-primary: #e0e0e0;
   --text-secondary: #a0a0a0;
-  --accent: #4db6ac;
-  --tafsir-tint: rgba(77, 182, 172, 0.09);
+  --accent: #15574d;
+  --tafsir-tint: rgba(21, 87, 77, 0.09);
   --text-on-accent: #f0fdfb;
-  --border: rgba(77, 182, 172, 0.15);
-  --hover-bg: rgba(77, 182, 172, 0.08);
+  --border: rgba(21, 87, 77, 0.15);
+  --hover-bg: rgba(21, 87, 77, 0.08);
   --verse-text: #d4e8db;
   --verse-glyph: #4db6ac;
   --tafsir-text: #bcaaa4;
