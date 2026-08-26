@@ -90,7 +90,7 @@ export default function SurahView() {
   if (error) {
     return (
       <div className="text-center py-20">
-        <p className="arabic-text text-secondary">خطأ: {error}</p>
+        <p className="arabic-text text-secondary">خطأ: <span dir="ltr" style={{unicodeBidi:'isolate'}}>{error}</span></p>
         <Link to="/" className="mt-4 inline-block arabic-text text-accent">العودة للرئيسية</Link>
       </div>
     )
