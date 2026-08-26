@@ -81,7 +81,7 @@ export default function SearchBar() {
           {results.map((result, idx) => (
             <Link
               key={`${result.surah_id}-${result.ayah_number}-${idx}`}
-              to={`/surah/${result.surah_id}`}
+              to={`/surah/${result.surah_id}#ayah-${result.ayah_number}`}
               className="block p-4 rounded-xl mb-3 transition-shadow hover:shadow-md no-underline input-style"
             >
               <div className="flex items-center justify-between mb-1">

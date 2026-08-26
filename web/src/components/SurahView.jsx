@@ -124,6 +124,7 @@ export default function SurahView() {
         {surah?.ayahs?.map(ayah => (
           <div
             key={ayah.number}
+            id={`ayah-${ayah.number}`}
             data-ayah={ayah.number}
             ref={el => {
               ayahEls.current[ayah.number] = el
