@@ -47,13 +47,17 @@ export default function SurahView() {
     return () => { cancelled = true }
   }, [surahId, fetchSurah, valid])
 
+  const restoredRef = useRef(null)
+
   useEffect(() => {
     if (!surah) return
+    if (restoredRef.current === surahId) return
     const saved = readingProgress[surahId]
     if (saved && saved > 1 && ayahEls.current[saved]) {
+      restoredRef.current = surahId
       ayahEls.current[saved].scrollIntoView({ block: 'start' })
     }
-  }, [surah])
+  }, [surah, surahId, readingProgress])
 
   useEffect(() => {
     if (!surah) return
