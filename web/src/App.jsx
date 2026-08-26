@@ -7,6 +7,7 @@ import { ProgressProvider } from './contexts/ProgressContext'
 import { SearchProvider } from './contexts/SearchContext'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
+import RouteAnnouncer from './components/RouteAnnouncer'
 import SurahList from './components/SurahList'
 import Spinner from './components/Spinner'
 
@@ -23,6 +24,7 @@ export default function App() {
             <ProgressProvider>
               <SearchProvider>
               <BrowserRouter basename={import.meta.env.BASE_URL}>
+                <RouteAnnouncer />
                 <Layout>
                   <Suspense fallback={<Spinner />}>
                     <Routes>
