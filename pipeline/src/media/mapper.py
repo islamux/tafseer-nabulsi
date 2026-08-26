@@ -28,14 +28,19 @@ def load_media_csv(csv_path: Path | None = None) -> dict[tuple[int, int], dict[s
 
     with open(path, encoding="utf-8") as f:
         reader = csv.reader(f)
+        skipped = 0
         for row in reader:
             if len(row) < 3:
                 continue
             # skip header-like rows
             if not row[0].strip().isdigit():
                 continue
-            surah_id = int(row[0].strip())
-            ayah_number = int(row[1].strip())
+            try:
+                surah_id = int(row[0].strip())
+                ayah_number = int(row[1].strip())
+            except (ValueError, IndexError):
+                skipped += 1
+                continue
             audio_url = row[2].strip() if len(row) > 2 else ""
             video_url = row[3].strip() if len(row) > 3 else ""
             media[(surah_id, ayah_number)] = {

@@ -22,9 +22,14 @@ class TestCleanText:
         assert _clean_text("  hello   world  ") == "hello world"
 
     def test_collapses_newlines(self):
-        text = "line1\n\n\nline2"
+        text = "line1\n\n\n\n\nline2"
         result = _clean_text(text)
-        assert "\n\n" not in result
+        assert result == "line1\n\nline2"
+
+    def test_preserves_double_newlines(self):
+        text = "line1\n\nline2"
+        result = _clean_text(text)
+        assert "\n\n" in result
 
     def test_strips(self):
         assert _clean_text("  leading and trailing  ") == "leading and trailing"
@@ -61,3 +66,11 @@ class TestProcessLesson:
         body = "  نص   بمسافات   متعددة  "
         result = process_lesson(title, body)
         assert result.body == "نص بمسافات متعددة"
+
+    def test_preserves_paragraph_breaks(self):
+        title = "تفسير الآية 1"
+        body = "الفقرة الأولى\n\nالفقرة الثانية\n\nالفقرة الثالثة"
+        result = process_lesson(title, body)
+        assert "\n\n" in result.body
+        assert "الفقرة الأولى" in result.body
+        assert "الفقرة الثالثة" in result.body

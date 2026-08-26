@@ -53,6 +53,7 @@ export default function AyahCard({ ayah, surahId }) {
           <button
             onClick={() => setExpanded(!expanded)}
             className="text-xs font-medium underline arabic-text transition-opacity hover:opacity-70 text-accent"
+            aria-expanded={expanded}
           >
             {expanded ? 'إخفاء التفسير' : 'عرض التفسير الكامل'}
           </button>
@@ -78,6 +79,7 @@ export default function AyahCard({ ayah, surahId }) {
           className="text-xl transition-transform hover:scale-110"
           title={favLabel}
           aria-label={favLabel}
+          aria-pressed={isFav}
         >
           {isFav ? '❤️' : '🤍'}
         </button>

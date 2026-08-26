@@ -1,6 +1,7 @@
 """Merge Quran text, tafsir, and media into the final JSON schema."""
 
 import json
+import os
 from pathlib import Path
 
 from src.config import OUTPUT_DIR, SURAH_NAMES
@@ -91,11 +92,18 @@ def _find_nearest_range(
 
 
 def save_surah_json(surah_id: int, data: dict) -> Path:
-    """Save a surah's JSON to the output directory."""
+    """Save a surah's JSON to the output directory atomically."""
+    import tempfile
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"{surah_id}.json"
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+    fd, tmp_path = tempfile.mkstemp(dir=OUTPUT_DIR, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+        os.replace(tmp_path, out_path)
+    except BaseException:
+        os.unlink(tmp_path)
+        raise
     return out_path
 
 
