@@ -53,7 +53,7 @@ export default function SearchBar() {
       </div>
 
       {isBuildingIndex && (
-        <div className="text-center py-8">
+        <div className="text-center py-8" role="status" aria-live="polite">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-3 border-accent"></div>
           <p className="text-sm arabic-text text-secondary">
             جاري تحميل البيانات... {toArabicNum(searchProgress)}%
@@ -62,13 +62,13 @@ export default function SearchBar() {
       )}
 
       {!isBuildingIndex && searchError && (
-        <p className="text-center py-8 arabic-text text-secondary">
+        <p className="text-center py-8 arabic-text text-secondary" role="alert">
           تعذّر البحث: {searchError}
         </p>
       )}
 
       {!isBuildingIndex && !searchError && searched && results.length === 0 && (
-        <p className="text-center py-8 arabic-text text-secondary">
+        <p className="text-center py-8 arabic-text text-secondary" role="status">
           لا توجد نتائج لـ "{query}"
         </p>
       )}
