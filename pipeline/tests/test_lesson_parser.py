@@ -50,3 +50,35 @@ class TestEdgeCases:
         # Fallback should catch single numbers
         result = parse_ayah_range("تفسير آية 100")
         assert result == [100]
+
+    def test_spaced_en_dash(self):
+        """Spaced en-dash should work like regular dash."""
+        result = parse_ayah_range("تفسير الآيات 1 – 8")
+        assert result == [1, 2, 3, 4, 5, 6, 7, 8]
+
+    def test_part_notation(self):
+        """Part notation (same number repeated) should return single ayah."""
+        result = parse_ayah_range("تفسير الآيات 2-2")
+        assert result == [2]  # "part 2 of 2" = single ayah 2
+
+    def test_comma_separated_numbers(self):
+        assert parse_ayah_range("تفسير الآيات 1، 2، 3") == [1, 2, 3]
+
+    def test_bare_number_after_tafsir(self):
+        result = parse_ayah_range("تفسير 24")
+        assert result == [24]
+
+    def test_number_after_colon(self):
+        assert parse_ayah_range("تفسير: الآية 24") == [24]
+
+    def test_title_with_only_number(self):
+        assert parse_ayah_range("الآيات 5-10") == list(range(5, 11))
+
+    def test_unrecognized_title_warns(self):
+        import warnings
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            result = parse_ayah_range("some completely unrelated title")
+            assert result == []
+            assert len(w) == 1
+            assert "unrecognized" in str(w[0].message).lower()

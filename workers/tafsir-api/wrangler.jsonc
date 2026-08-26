@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "tafsir-api",
+  "main": "src/index.js",
+  "compatibility_date": "2025-07-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tafseer-nabulsi",
+      "database_id": ""
+    }
+  ]
+}

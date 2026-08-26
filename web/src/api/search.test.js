@@ -4,7 +4,7 @@ import { searchLocal } from './search'
 describe('searchLocal', () => {
   const mockIndex = [
     { text: 'الحمد لله', tafsir_short: 'تفسير 1', tafsir_long: 'شرح كامل' },
-    { text: 'قل هو الله أحد', tafsir_short: 'تفسير 2', tafsir_long: 'شرح الإخلاص' },
+    { text: 'قل هو الله احد', tafsir_short: 'تفسير 2', tafsir_long: 'شرح الاخلاص' },
     { text: 'تبارك الذي', tafsir_short: '', tafsir_long: 'تفصيل الملك' },
   ]
 
@@ -35,11 +35,33 @@ describe('searchLocal', () => {
 
   it('caps results at 50', () => {
     const bigIndex = Array.from({ length: 60 }, (_, i) => ({
-      text: `آية ${i}`,
+      text: `اية ${i}`,
       tafsir_short: '',
       tafsir_long: '',
     }))
-    const results = searchLocal('آية', bigIndex)
+    const results = searchLocal('اية', bigIndex)
     expect(results).toHaveLength(50)
+  })
+
+  it('matches diacritized text with undiacritized query', () => {
+    const vocalizedIndex = [
+      { text: 'بسم الله الرحمن الرحيم', tafsir_short: '', tafsir_long: '' },
+    ]
+    const results = searchLocal('بسم الله', vocalizedIndex)
+    expect(results).toHaveLength(1)
+  })
+
+  it('matches alef-madda and alef-hamza variants', () => {
+    const index = [
+      { text: 'امن الرسول', tafsir_short: '', tafsir_long: '' },
+    ]
+    expect(searchLocal('امن', index)).toHaveLength(1)
+  })
+
+  it('matches diacritized tafsir_short field', () => {
+    const index = [
+      { text: 'some text', tafsir_short: 'تفسير مبسط', tafsir_long: '' },
+    ]
+    expect(searchLocal('تفسير مبسط', index)).toHaveLength(1)
   })
 })

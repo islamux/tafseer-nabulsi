@@ -56,6 +56,6 @@ def _extract_theme(title: str) -> str:
 def _clean_text(text: str) -> str:
     """Clean extracted text: normalize whitespace, strip."""
     import re
-    text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\n\s*\n", "\n", text)
+    text = re.sub(r"[^\S\n]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text.strip())
     return text.strip()

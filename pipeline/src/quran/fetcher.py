@@ -12,19 +12,23 @@ ALQURAN_CLOUD_URL = "https://api.alquran.cloud/v1/quran/quran-uthmani"
 _QURAN_CACHE = CACHE_DIR / "quran_uthmani.json"
 
 
-def fetch_quran_json(force: bool = False) -> Path:
+def fetch_quran_json(force: bool = False) -> Path | None:
     """Download the full Quran in Uthmani script from AlQuran.cloud.
 
-    Returns the local cached JSON path.
+    Returns the local cached JSON path, or None on network failure.
     """
     if _QURAN_CACHE.exists() and not force:
         return _QURAN_CACHE
 
     _QURAN_CACHE.parent.mkdir(parents=True, exist_ok=True)
 
-    wait_if_needed(REQUEST_DELAY_SECONDS)
-    resp = requests.get(ALQURAN_CLOUD_URL, timeout=60)
-    resp.raise_for_status()
+    try:
+        wait_if_needed(REQUEST_DELAY_SECONDS)
+        resp = requests.get(ALQURAN_CLOUD_URL, timeout=60)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"Warning: failed to fetch Quran JSON: {e}")
+        return None
 
     _QURAN_CACHE.write_text(resp.text, encoding="utf-8")
     return _QURAN_CACHE

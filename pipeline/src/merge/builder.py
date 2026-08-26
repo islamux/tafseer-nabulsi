@@ -1,6 +1,7 @@
 """Merge Quran text, tafsir, and media into the final JSON schema."""
 
 import json
+import os
 from pathlib import Path
 
 from src.config import OUTPUT_DIR, SURAH_NAMES
@@ -19,15 +20,27 @@ def build_surah_json(
 
     ayah_list = []
     for ayah in surah.ayahs:
-        # Find all tafsir entries that mention this ayah
-        matching = [t for t in tafsir_entries if ayah.number in t.ayah_numbers]
+        direct = [t for t in tafsir_entries if ayah.number in t.ayah_numbers]
+        specific = [t for t in direct if len(t.ayah_numbers) == 1]
 
-        if matching:
-            tafsir_long = "\n\n".join(t.body for t in matching)
-            tafsir_short = "; ".join(t.theme for t in matching if t.theme)
+        if specific:
+            tafsir_long = "\n\n".join(t.body for t in specific)
+            tafsir_short = "; ".join(t.theme for t in specific if t.theme)
+            inherited_flag = False
+        elif direct:
+            tafsir_long = "\n\n".join(t.body for t in direct)
+            tafsir_short = "; ".join(t.theme for t in direct if t.theme)
+            inherited_flag = False
         else:
-            tafsir_long = ""
-            tafsir_short = ""
+            inherited = _find_nearest_range(ayah.number, tafsir_entries)
+            if inherited:
+                tafsir_long = inherited.body
+                tafsir_short = inherited.theme
+                inherited_flag = True
+            else:
+                tafsir_long = ""
+                tafsir_short = ""
+                inherited_flag = False
 
         media = map_media_links(surah_id, ayah.number, media_map)
 
@@ -36,6 +49,7 @@ def build_surah_json(
             "text": ayah.text,
             "tafsir_short": tafsir_short,
             "tafsir_long": tafsir_long,
+            "tafsir_inherited": inherited_flag,
             "media": media,
         })
 
@@ -46,12 +60,50 @@ def build_surah_json(
     }
 
 
+MAX_INHERIT_DISTANCE = 5
+
+
+def _find_nearest_range(
+    ayah_number: int,
+    entries: list[TafsirEntry],
+) -> TafsirEntry | None:
+    """Find the nearest TafsirEntry whose range covers ayah_number's neighborhood."""
+    if not entries:
+        return None
+
+    best = None
+    best_distance = float("inf")
+
+    for entry in entries:
+        if not entry.ayah_numbers:
+            continue
+        lo = min(entry.ayah_numbers)
+        hi = max(entry.ayah_numbers)
+        midpoint = (lo + hi) / 2
+        distance = abs(ayah_number - midpoint)
+        if distance < best_distance:
+            best_distance = distance
+            best = entry
+
+    if best and best_distance > MAX_INHERIT_DISTANCE:
+        return None
+
+    return best
+
+
 def save_surah_json(surah_id: int, data: dict) -> Path:
-    """Save a surah's JSON to the output directory."""
+    """Save a surah's JSON to the output directory atomically."""
+    import tempfile
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"{surah_id}.json"
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    fd, tmp_path = tempfile.mkstemp(dir=OUTPUT_DIR, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+        os.replace(tmp_path, out_path)
+    except BaseException:
+        os.unlink(tmp_path)
+        raise
     return out_path
 
 
@@ -59,17 +111,18 @@ def save_index(surahs_data: list[dict]) -> Path:
     """Save the surah index (_index.json)."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     index = []
-    for i, s in enumerate(surahs_data, 1):
+    for s in surahs_data:
+        sid = s["surah_id"]
         index.append({
-            "surah_id": i,
-            "name": SURAH_NAMES[i - 1],
+            "surah_id": sid,
+            "name": SURAH_NAMES[sid - 1],
             "ayah_count": len(s["ayahs"]),
             "has_tafsir": any(a["tafsir_long"] for a in s["ayahs"]),
         })
 
     out_path = OUTPUT_DIR / "_index.json"
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(index, f, ensure_ascii=False, indent=2)
+        json.dump(index, f, ensure_ascii=False, separators=(",", ":"))
     return out_path
 
 
@@ -79,21 +132,33 @@ def generate_report(surahs_data: list[dict]) -> dict:
     with_tafsir = 0
     without_tafsir = 0
     gaps = []
+    per_surah = []
 
     for s in surahs_data:
+        surah_ayahs = len(s["ayahs"])
+        surah_with_tafsir = sum(1 for a in s["ayahs"] if a["tafsir_long"])
+        total_ayahs += surah_ayahs
+        with_tafsir += surah_with_tafsir
+        
         for a in s["ayahs"]:
-            total_ayahs += 1
-            if a["tafsir_long"]:
-                with_tafsir += 1
-            else:
+            if not a["tafsir_long"]:
                 without_tafsir += 1
                 gaps.append(f"{s['surah_id']}:{a['number']}")
+        
+        per_surah.append({
+            "surah_id": s["surah_id"],
+            "name": s["name"],
+            "ayah_count": surah_ayahs,
+            "with_tafsir": surah_with_tafsir,
+            "coverage_pct": round(surah_with_tafsir / surah_ayahs * 100, 1) if surah_ayahs else 0,
+        })
 
     return {
         "total_ayahs": total_ayahs,
         "with_tafsir": with_tafsir,
         "without_tafsir": without_tafsir,
         "coverage_pct": round(with_tafsir / total_ayahs * 100, 1) if total_ayahs else 0,
-        "gaps": gaps[:50],  # first 50 gaps
+        "gaps": gaps,
         "total_gaps": len(gaps),
+        "per_surah": per_surah,
     }

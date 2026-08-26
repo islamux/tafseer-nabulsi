@@ -17,11 +17,12 @@ export default function Layout({ children }) {
         <div className="flex items-center gap-3">
           <NavLink
             to="/search"
+            aria-label="بحث"
             className={({ isActive }) =>
               `flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors no-underline ${isActive ? 'badge-accent' : 'text-primary'}`
             }
           >
-            <span>🔍</span>
+            <span aria-hidden="true">🔍</span>
             <span className="hidden sm:inline arabic-text">بحث</span>
           </NavLink>
           <ThemeToggle />

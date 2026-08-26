@@ -1,3 +1,8 @@
+> **Historical prompt.** This is the original spec that generated the web app. Note the
+> "Backend: Integrate Supabase…" requirement below was **superseded**: the web app uses a
+> Cloudflare Worker + D1 backend (`workers/tafsir-api/`, device-ID keyed, no auth), not Supabase.
+> Supabase is retained only as a reference for the planned Kotlin app. See `supabase/README.md`.
+
 Prompt 1: Web Application (React + Vite)
 "Act as a senior Frontend Developer. Build a high-performance Quran Tafsir web application using React (Vite) and Tailwind CSS.
 

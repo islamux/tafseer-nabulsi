@@ -1,24 +1,42 @@
-import { useState } from 'react'
+import { useState, memo, useMemo } from 'react'
 import { useFavorites } from '../contexts/FavoritesContext'
-import { toArabicNum } from '../utils/arabic'
+import { toArabicNum, splitAyahSegments } from '../utils/arabic'
+import { basmalaIsFirstAyah } from '../utils/quran'
 import { parseTafsir } from '../utils/tafsir'
+import TafsirText from './TafsirText'
 
-export default function AyahCard({ ayah, surahId }) {
+const BRACKET_SCALE = '1.15em'
+
+const AyahCard = memo(function AyahCard({ ayah, surahId }) {
   const [expanded, setExpanded] = useState(false)
   const { toggleFavorite, isFavorite } = useFavorites()
   const isFav = isFavorite(surahId, ayah.number)
   const favLabel = isFav ? 'إزالة من المفضلة' : 'إضافة للمفضلة'
-  const { year, body: tafsirBody } = parseTafsir(ayah.tafsir_long || '')
+  const { year, body: tafsirBody } = expanded ? parseTafsir(ayah.tafsir_long || '') : { year: null, body: '' }
+  const isBasmalah = ayah.number === 1 && basmalaIsFirstAyah(surahId)
+
+  const segments = useMemo(() => splitAyahSegments(ayah.text), [ayah.text])
 
   return (
-    <div className="py-6 border-b" style={{ borderColor: 'var(--border)' }}>
+    <div className={`py-6 border-b ${isBasmalah ? 'mb-2' : ''}`} style={{ borderColor: 'var(--border)' }}>
       <div className="text-center">
-        <p className="text-2xl leading-[2.2] arabic-text text-primary">
-          <span className="text-accent">﴿</span>
-          {'\u00A0'}{ayah.text}{'\u00A0'}
-          <span className="text-accent">﴾</span>
+        <p
+          className={`arabic-text text-verse ${isBasmalah ? 'text-3xl leading-[2.6]' : 'text-2xl leading-[2.2]'}`}
+        >
+          <span className="text-verse-glyph" style={{ fontSize: BRACKET_SCALE }}>﴿</span>
           {'\u00A0'}
-          <span className="inline-block w-7 h-7 rounded-full text-xs font-bold align-middle text-center leading-7 badge-accent">
+          {segments.map((seg, i) => (
+            <span key={i}>
+              {seg}
+              {i < segments.length - 1 && <br />}
+            </span>
+          ))}
+          {'\u00A0'}
+          <span className="text-verse-glyph" style={{ fontSize: BRACKET_SCALE }}>﴾</span>
+          {'\u00A0'}
+          <span
+            className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold badge-accent leading-none align-middle"
+          >
             {toArabicNum(ayah.number)}
           </span>
         </p>
@@ -35,12 +53,13 @@ export default function AyahCard({ ayah, surahId }) {
           <button
             onClick={() => setExpanded(!expanded)}
             className="text-xs font-medium underline arabic-text transition-opacity hover:opacity-70 text-accent"
+            aria-expanded={expanded}
           >
             {expanded ? 'إخفاء التفسير' : 'عرض التفسير الكامل'}
           </button>
           {expanded && (
-            <div className="mt-4 p-4 rounded-lg text-right" style={{ backgroundColor: 'var(--tafsir-tint)' }}>
-              <div className="flex items-center gap-2 mb-3">
+            <div className="mt-4 p-5 rounded-lg text-right" style={{ backgroundColor: 'var(--tafsir-tint)' }}>
+              <div className="flex items-center gap-2 mb-4 justify-center">
                 <span className="text-xs font-bold text-accent">التفسير</span>
                 {year && (
                   <span className="text-xs px-2 py-0.5 rounded-full font-bold badge-accent">
@@ -48,9 +67,7 @@ export default function AyahCard({ ayah, surahId }) {
                   </span>
                 )}
               </div>
-              <p className="text-base leading-loose arabic-text whitespace-pre-line text-primary">
-                {toArabicNum(tafsirBody)}
-              </p>
+              <TafsirText body={tafsirBody} />
             </div>
           )}
         </div>
@@ -62,10 +79,13 @@ export default function AyahCard({ ayah, surahId }) {
           className="text-xl transition-transform hover:scale-110"
           title={favLabel}
           aria-label={favLabel}
+          aria-pressed={isFav}
         >
           {isFav ? '❤️' : '🤍'}
         </button>
       </div>
     </div>
   )
-}
+})
+
+export default AyahCard

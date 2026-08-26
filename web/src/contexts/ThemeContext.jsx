@@ -3,15 +3,27 @@ import { createContext, useContext, useState, useEffect } from 'react'
 const ThemeContext = createContext()
 
 const THEMES = ['light', 'dark', 'sepia']
+const STORAGE_KEY = 'tafsir-theme'
+
+function readStoredTheme() {
+  try {
+    const t = localStorage.getItem(STORAGE_KEY)
+    return THEMES.includes(t) ? t : 'light'
+  } catch {
+    return 'light'
+  }
+}
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('tafsir-theme') || 'light'
-  })
+  const [theme, setTheme] = useState(readStoredTheme)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('tafsir-theme', theme)
+    try {
+      localStorage.setItem(STORAGE_KEY, theme)
+    } catch {
+      /* storage unavailable (private browsing, quota) — theme stays in-memory only */
+    }
   }, [theme])
 
   const toggleTheme = () => {

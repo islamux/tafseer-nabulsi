@@ -8,6 +8,11 @@ export default {
         arabic: ['"Noto Naskh Arabic"', 'serif'],
         sans: ['Inter', 'sans-serif'],
       },
+      colors: {
+        verse: 'var(--verse-text)',
+        'verse-glyph': 'var(--verse-glyph)',
+        tafsir: 'var(--tafsir-text)',
+      },
     },
   },
   plugins: [],

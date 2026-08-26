@@ -76,6 +76,9 @@ def is_tafsir_title(title: str) -> bool:
     return "تفسير" in title
 
 
+MAX_PAGES = 50
+
+
 def collect_all_stories(
     category_id: str,
     fetch_page: Callable[[str, int], tuple[list[str], bool]],
@@ -86,11 +89,16 @@ def collect_all_stories(
     ``html_chunks`` is a list of HTML strings and ``no_more`` signals the end.
     Returns deduped {url, title} across all pages.
     """
+    import warnings
     seen: set[str] = set()
     all_stories: list[dict] = []
     page = 1
-    while True:
-        chunks, no_more = fetch_page(category_id, page)
+    while page <= MAX_PAGES:
+        try:
+            chunks, no_more = fetch_page(category_id, page)
+        except Exception as e:
+            warnings.warn(f"Failed to fetch page {page} for category {category_id}: {e}")
+            break
         for chunk in chunks:
             for story in parse_stories_from_html(chunk):
                 if story["url"] in seen:
@@ -100,6 +108,8 @@ def collect_all_stories(
         if no_more:
             break
         page += 1
+    if page > MAX_PAGES:
+        warnings.warn(f"Pagination hit MAX_PAGES ({MAX_PAGES}) for category {category_id}")
     return all_stories
 
 

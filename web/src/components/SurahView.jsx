@@ -1,21 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
+import { useProgress } from '../contexts/ProgressContext'
 import AyahCard from './AyahCard'
+import BismillahHeader from './BismillahHeader'
 import Spinner from './Spinner'
+import NotFound from './NotFound'
 import { toArabicNum } from '../utils/arabic'
+import { hasSeparateBismillah } from '../utils/quran'
+
+const TOTAL_SURAHS = 114
+const isValidSurahId = (id) => Number.isInteger(id) && id >= 1 && id <= TOTAL_SURAHS
 
 export default function SurahView() {
   const { id } = useParams()
   const surahId = parseInt(id, 10)
   const { fetchSurah, index } = useData()
+  const { readingProgress, saveReadingProgress } = useProgress()
   const [surah, setSurah] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const ayahEls = useRef({})
+  const lastSeenAyah = useRef(0)
+
   const surahMeta = index.find(surah => surah.surah_id === surahId)
+  const valid = isValidSurahId(surahId)
 
   useEffect(() => {
+    if (!valid) return
     let cancelled = false
     setLoading(true)
     setError(null)
@@ -32,7 +45,49 @@ export default function SurahView() {
       })
 
     return () => { cancelled = true }
-  }, [surahId, fetchSurah])
+  }, [surahId, fetchSurah, valid])
+
+  const restoredRef = useRef(null)
+
+  useEffect(() => {
+    if (!surah) return
+    if (restoredRef.current === surahId) return
+    const saved = readingProgress[surahId]
+    if (saved && saved > 1 && ayahEls.current[saved]) {
+      restoredRef.current = surahId
+      ayahEls.current[saved].scrollIntoView({ block: 'start' })
+    }
+  }, [surah, surahId, readingProgress])
+
+  useEffect(() => {
+    if (!surah) return
+    lastSeenAyah.current = 0
+    let timer = null
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const num = Number(entry.target.dataset.ayah)
+            if (num > lastSeenAyah.current) {
+              lastSeenAyah.current = num
+              if (timer) clearTimeout(timer)
+              timer = setTimeout(() => saveReadingProgress(surahId, num), 1500)
+            }
+          }
+        }
+      },
+      { rootMargin: '0px 0px -75% 0px', threshold: 0 }
+    )
+    for (const el of Object.values(ayahEls.current)) {
+      if (el) observer.observe(el)
+    }
+    return () => {
+      if (timer) clearTimeout(timer)
+      observer.disconnect()
+    }
+  }, [surah])
+
+  if (!valid) return <NotFound />
 
   if (loading) {
     return <Spinner />
@@ -41,7 +96,7 @@ export default function SurahView() {
   if (error) {
     return (
       <div className="text-center py-20">
-        <p className="arabic-text text-secondary">خطأ: {error}</p>
+        <p className="arabic-text text-secondary">خطأ: <span dir="ltr" style={{unicodeBidi:'isolate'}}>{error}</span></p>
         <Link to="/" className="mt-4 inline-block arabic-text text-accent">العودة للرئيسية</Link>
       </div>
     )
@@ -53,18 +108,36 @@ export default function SurahView() {
         العودة للسور ←
       </Link>
 
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold arabic-text text-primary">
+      <div className="text-center mb-10">
+        <span className="inline-flex items-center justify-center w-14 h-14 rounded-full text-xl font-bold mb-4 badge-accent">
+          {toArabicNum(surahId)}
+        </span>
+        <h1 className="text-4xl font-bold arabic-text text-primary mb-2">
           سورة {surahMeta?.name || surah?.name}
         </h1>
-        <p className="text-sm mt-1 arabic-text text-secondary">
+        <p className="text-sm arabic-text text-secondary">
           {toArabicNum(surah?.ayahs?.length ?? surahMeta?.ayah_count)} آية
         </p>
+        <div
+          className="mx-auto mt-6 w-24 h-0.5 rounded-full opacity-40"
+          style={{ backgroundColor: 'var(--accent)' }}
+        />
       </div>
+
+      {hasSeparateBismillah(surahId) && <BismillahHeader />}
 
       <div>
         {surah?.ayahs?.map(ayah => (
-          <AyahCard key={ayah.number} ayah={ayah} surahId={surahId} />
+          <div
+            key={ayah.number}
+            id={`ayah-${ayah.number}`}
+            data-ayah={ayah.number}
+            ref={el => {
+              ayahEls.current[ayah.number] = el
+            }}
+          >
+            <AyahCard ayah={ayah} surahId={surahId} />
+          </div>
         ))}
       </div>
     </div>

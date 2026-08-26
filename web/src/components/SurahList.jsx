@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
+import { useProgress } from '../contexts/ProgressContext'
 import { toArabicNum } from '../utils/arabic'
 import Spinner from './Spinner'
 
 export default function SurahList() {
   const { index, indexError } = useData()
+  const { readingProgress } = useProgress()
   const [filter, setFilter] = useState('')
+  const hasStarted = (id) => readingProgress[id] != null
 
   const filtered = index.filter(s =>
     s.name.includes(filter) ||
@@ -49,36 +52,45 @@ export default function SurahList() {
         placeholder="ابحث عن سورة..."
         value={filter}
         onChange={e => setFilter(e.target.value)}
+        aria-label="تصفية قائمة السور"
         className="w-full mb-6 px-4 py-2.5 rounded-xl text-sm border-0 outline-none arabic-text transition-colors input-style"
       />
 
-      <div>
+      <ul className="list-none p-0 m-0">
         {filtered.map(surah => (
-          <Link
-            key={surah.surah_id}
-            to={`/surah/${surah.surah_id}`}
-            className="surah-row flex items-center justify-between py-4 border-b transition-colors no-underline text-primary"
-            style={{ borderColor: 'var(--border)' }}
-          >
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-bold w-8 text-center text-accent">
-                {toArabicNum(surah.surah_id)}
-              </span>
-              <div>
-                <h2 className="text-lg font-bold arabic-text">{surah.name}</h2>
-                <p className="text-xs mt-0.5 arabic-text text-secondary">
-                  {toArabicNum(surah.ayah_count)} آية
-                </p>
+          <li key={surah.surah_id}>
+            <Link
+              to={`/surah/${surah.surah_id}`}
+              className="surah-row flex items-center justify-between py-4 border-b transition-colors no-underline text-primary"
+              style={{ borderColor: 'var(--border)' }}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-bold w-8 text-center text-accent">
+                  {toArabicNum(surah.surah_id)}
+                </span>
+                <div>
+                  <span className="text-lg font-bold arabic-text">{surah.name}</span>
+                  <p className="text-xs mt-0.5 arabic-text text-secondary">
+                    {toArabicNum(surah.ayah_count)} آية
+                  </p>
+                </div>
               </div>
-            </div>
-            {surah.has_tafsir && (
-              <span className="text-xs px-2 py-1 rounded-full badge-accent">
-                تفسير
-              </span>
-            )}
-          </Link>
+              <div className="flex items-center gap-1">
+                {hasStarted(surah.surah_id) && (
+                  <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--hover-bg)', color: 'var(--accent)' }}>
+                    متابعة
+                  </span>
+                )}
+                {surah.has_tafsir && (
+                  <span className="text-xs px-2 py-1 rounded-full badge-accent">
+                    تفسير
+                  </span>
+                )}
+              </div>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
 
       {filtered.length === 0 && (
         <p className="text-center mt-8 arabic-text text-secondary">

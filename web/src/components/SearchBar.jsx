@@ -40,6 +40,7 @@ export default function SearchBar() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
+          aria-label="بحث في القرآن والتفسير"
           className="flex-1 px-4 py-2.5 rounded-xl text-sm border-0 outline-none arabic-text input-style"
         />
         <button
@@ -52,7 +53,7 @@ export default function SearchBar() {
       </div>
 
       {isBuildingIndex && (
-        <div className="text-center py-8">
+        <div className="text-center py-8" role="status" aria-live="polite">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-3 border-accent"></div>
           <p className="text-sm arabic-text text-secondary">
             جاري تحميل البيانات... {toArabicNum(searchProgress)}%
@@ -61,13 +62,13 @@ export default function SearchBar() {
       )}
 
       {!isBuildingIndex && searchError && (
-        <p className="text-center py-8 arabic-text text-secondary">
+        <p className="text-center py-8 arabic-text text-secondary" role="alert">
           تعذّر البحث: {searchError}
         </p>
       )}
 
       {!isBuildingIndex && !searchError && searched && results.length === 0 && (
-        <p className="text-center py-8 arabic-text text-secondary">
+        <p className="text-center py-8 arabic-text text-secondary" role="status">
           لا توجد نتائج لـ "{query}"
         </p>
       )}
@@ -80,7 +81,7 @@ export default function SearchBar() {
           {results.map((result, idx) => (
             <Link
               key={`${result.surah_id}-${result.ayah_number}-${idx}`}
-              to={`/surah/${result.surah_id}`}
+              to={`/surah/${result.surah_id}#ayah-${result.ayah_number}`}
               className="block p-4 rounded-xl mb-3 transition-shadow hover:shadow-md no-underline input-style"
             >
               <div className="flex items-center justify-between mb-1">
