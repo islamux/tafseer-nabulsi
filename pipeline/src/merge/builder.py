@@ -25,17 +25,21 @@ def build_surah_json(
         if specific:
             tafsir_long = "\n\n".join(t.body for t in specific)
             tafsir_short = "; ".join(t.theme for t in specific if t.theme)
+            inherited_flag = False
         elif direct:
             tafsir_long = "\n\n".join(t.body for t in direct)
             tafsir_short = "; ".join(t.theme for t in direct if t.theme)
+            inherited_flag = False
         else:
             inherited = _find_nearest_range(ayah.number, tafsir_entries)
             if inherited:
                 tafsir_long = inherited.body
                 tafsir_short = inherited.theme
+                inherited_flag = True
             else:
                 tafsir_long = ""
                 tafsir_short = ""
+                inherited_flag = False
 
         media = map_media_links(surah_id, ayah.number, media_map)
 
@@ -44,6 +48,7 @@ def build_surah_json(
             "text": ayah.text,
             "tafsir_short": tafsir_short,
             "tafsir_long": tafsir_long,
+            "tafsir_inherited": inherited_flag,
             "media": media,
         })
 
@@ -52,6 +57,9 @@ def build_surah_json(
         "name": SURAH_NAMES[surah_id - 1],
         "ayahs": ayah_list,
     }
+
+
+MAX_INHERIT_DISTANCE = 5
 
 
 def _find_nearest_range(
@@ -75,6 +83,9 @@ def _find_nearest_range(
         if distance < best_distance:
             best_distance = distance
             best = entry
+
+    if best and best_distance > MAX_INHERIT_DISTANCE:
+        return None
 
     return best
 
