@@ -7,7 +7,8 @@ const STORAGE_KEY = 'tafsir-theme'
 
 function readStoredTheme() {
   try {
-    return localStorage.getItem(STORAGE_KEY) || 'light'
+    const t = localStorage.getItem(STORAGE_KEY)
+    return THEMES.includes(t) ? t : 'light'
   } catch {
     return 'light'
   }

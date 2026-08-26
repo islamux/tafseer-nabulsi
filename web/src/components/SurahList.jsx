@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
+import { useProgress } from '../contexts/ProgressContext'
 import { toArabicNum } from '../utils/arabic'
 import Spinner from './Spinner'
 
 export default function SurahList() {
-  const { index, indexError, readingProgress } = useData()
+  const { index, indexError } = useData()
+  const { readingProgress } = useProgress()
   const [filter, setFilter] = useState('')
   const hasStarted = (id) => readingProgress[id] != null
 

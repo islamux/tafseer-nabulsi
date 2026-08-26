@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { FavoritesProvider } from './contexts/FavoritesContext'
 import { DataProvider } from './contexts/DataContext'
+import { ProgressProvider } from './contexts/ProgressContext'
 import { SearchProvider } from './contexts/SearchContext'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -19,7 +20,8 @@ export default function App() {
       <ThemeProvider>
         <FavoritesProvider>
           <DataProvider>
-            <SearchProvider>
+            <ProgressProvider>
+              <SearchProvider>
               <BrowserRouter basename={import.meta.env.BASE_URL}>
                 <Layout>
                   <Suspense fallback={<Spinner />}>
@@ -32,7 +34,8 @@ export default function App() {
                   </Suspense>
                 </Layout>
               </BrowserRouter>
-            </SearchProvider>
+              </SearchProvider>
+            </ProgressProvider>
           </DataProvider>
         </FavoritesProvider>
       </ThemeProvider>

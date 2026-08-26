@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo, useMemo } from 'react'
 import { useFavorites } from '../contexts/FavoritesContext'
 import { toArabicNum, splitAyahSegments } from '../utils/arabic'
 import { basmalaIsFirstAyah } from '../utils/quran'
@@ -7,15 +7,15 @@ import TafsirText from './TafsirText'
 
 const BRACKET_SCALE = '1.15em'
 
-export default function AyahCard({ ayah, surahId }) {
+const AyahCard = memo(function AyahCard({ ayah, surahId }) {
   const [expanded, setExpanded] = useState(false)
   const { toggleFavorite, isFavorite } = useFavorites()
   const isFav = isFavorite(surahId, ayah.number)
   const favLabel = isFav ? 'إزالة من المفضلة' : 'إضافة للمفضلة'
-  const { year, body: tafsirBody } = parseTafsir(ayah.tafsir_long || '')
+  const { year, body: tafsirBody } = expanded ? parseTafsir(ayah.tafsir_long || '') : { year: null, body: '' }
   const isBasmalah = ayah.number === 1 && basmalaIsFirstAyah(surahId)
 
-  const segments = splitAyahSegments(ayah.text)
+  const segments = useMemo(() => splitAyahSegments(ayah.text), [ayah.text])
 
   return (
     <div className={`py-6 border-b ${isBasmalah ? 'mb-2' : ''}`} style={{ borderColor: 'var(--border)' }}>
@@ -86,4 +86,6 @@ export default function AyahCard({ ayah, surahId }) {
       </div>
     </div>
   )
-}
+})
+
+export default AyahCard
