@@ -55,13 +55,15 @@ export async function loadSurah(id) {
 async function loadAllSurahs(onProgress) {
   const surahIndex = await loadIndex()
   const total = surahIndex.length
-  const loaded = []
+  const loaded = new Array(total)
+  const BATCH_SIZE = 8
 
-  for (let i = 0; i < total; i++) {
-    const surahId = surahIndex[i].surah_id
-    const surahData = await loadSurah(surahId)
-    loaded.push(surahData)
-    if (onProgress) onProgress(i + 1, total)
+  for (let start = 0; start < total; start += BATCH_SIZE) {
+    const batch = surahIndex.slice(start, start + BATCH_SIZE)
+    const results = await Promise.all(
+      batch.map((s, i) => loadSurah(s.surah_id).then(data => { loaded[start + i] = data }))
+    )
+    if (onProgress) onProgress(Math.min(start + BATCH_SIZE, total), total)
   }
 
   return loaded
