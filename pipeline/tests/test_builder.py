@@ -78,6 +78,35 @@ def test_range_inheritance_direct_takes_precedence():
     assert data["ayahs"][0]["tafsir_long"] == "range text"
 
 
+def test_range_inheritance_stops_beyond_distance_cap():
+    """Ayahs far from any range get no inherited tafsir."""
+    surah = _make_surah(ayah_texts={i: f"ayah {i}" for i in range(1, 41)})
+    entries = [
+        TafsirEntry(ayah_numbers=[1, 2], title="آيات 1-2", theme="مقدمة", body="early text"),
+    ]
+    data = build_surah_json(surah, entries, surah_id=1)
+    assert data["ayahs"][0]["tafsir_long"] == "early text"
+    assert data["ayahs"][1]["tafsir_long"] == "early text"
+    assert data["ayahs"][5]["tafsir_long"] == "early text"
+    assert data["ayahs"][7]["tafsir_long"] == ""
+    assert data["ayahs"][39]["tafsir_long"] == ""
+
+
+def test_inherited_tafsir_marked_in_output():
+    """Inherited tafsir entries have tafsir_inherited=True, direct entries have False."""
+    surah = _make_surah(ayah_texts={i: f"ayah {i}" for i in range(1, 21)})
+    entries = [
+        TafsirEntry(ayah_numbers=[1, 2, 3], title="آيات 1-3", theme="مقدمة", body="range text"),
+        TafsirEntry(ayah_numbers=[20], title="آية 20", theme="خاتمة", body="end text"),
+    ]
+    data = build_surah_json(surah, entries, surah_id=1)
+    assert data["ayahs"][0]["tafsir_inherited"] is False
+    assert data["ayahs"][2]["tafsir_inherited"] is False
+    assert data["ayahs"][4]["tafsir_inherited"] is True
+    assert data["ayahs"][7]["tafsir_inherited"] is False
+    assert data["ayahs"][19]["tafsir_inherited"] is False
+
+
 def test_save_index_uses_surah_id():
     from src.merge.builder import save_index
     import json

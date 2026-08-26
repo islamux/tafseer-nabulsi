@@ -1,15 +1,16 @@
 const API_BASE = import.meta.env.VITE_API_BASE || ''
-const DEVICE_KEY = 'tafsir-device-id'
+const TOKEN_KEY = 'tafsir-device-token'
+const LEGACY_KEY = 'tafsir-device-id'
 
 export function getDeviceId() {
   if (!API_BASE) return null
   try {
-    let id = localStorage.getItem(DEVICE_KEY)
-    if (!id) {
-      id = crypto.randomUUID()
-      localStorage.setItem(DEVICE_KEY, id)
+    let token = localStorage.getItem(TOKEN_KEY)
+    if (!token) {
+      token = localStorage.getItem(LEGACY_KEY) || crypto.randomUUID()
+      localStorage.setItem(TOKEN_KEY, token)
     }
-    return id
+    return token
   } catch {
     return null
   }
@@ -34,33 +35,40 @@ async function api(path, options = {}) {
   }
 }
 
-export async function fetchBookmarks(deviceId) {
-  const data = await api(`/bookmarks?device_id=${encodeURIComponent(deviceId)}`)
+export async function fetchBookmarks(token) {
+  const data = await api('/bookmarks', {
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
   return data?.bookmarks ?? null
 }
 
-export async function addBookmark(deviceId, surahId, ayahNumber) {
+export async function addBookmark(token, surahId, ayahNumber) {
   return api('/bookmarks', {
     method: 'POST',
-    body: JSON.stringify({ device_id: deviceId, surah_id: surahId, ayah_number: ayahNumber }),
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ surah_id: surahId, ayah_number: ayahNumber }),
   })
 }
 
-export async function removeBookmark(deviceId, surahId, ayahNumber) {
+export async function removeBookmark(token, surahId, ayahNumber) {
   return api('/bookmarks', {
     method: 'DELETE',
-    body: JSON.stringify({ device_id: deviceId, surah_id: surahId, ayah_number: ayahNumber }),
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ surah_id: surahId, ayah_number: ayahNumber }),
   })
 }
 
-export async function fetchProgress(deviceId) {
-  const data = await api(`/progress?device_id=${encodeURIComponent(deviceId)}`)
+export async function fetchProgress(token) {
+  const data = await api('/progress', {
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
   return data?.progress ?? null
 }
 
-export async function saveProgress(deviceId, surahId, ayahNumber) {
+export async function saveProgress(token, surahId, ayahNumber) {
   return api('/progress', {
     method: 'PUT',
-    body: JSON.stringify({ device_id: deviceId, surah_id: surahId, last_ayah_number: ayahNumber }),
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ surah_id: surahId, last_ayah_number: ayahNumber }),
   })
 }
