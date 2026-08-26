@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
+import { useProgress } from '../contexts/ProgressContext'
 import AyahCard from './AyahCard'
 import BismillahHeader from './BismillahHeader'
 import Spinner from './Spinner'
@@ -14,7 +15,8 @@ const isValidSurahId = (id) => Number.isInteger(id) && id >= 1 && id <= TOTAL_SU
 export default function SurahView() {
   const { id } = useParams()
   const surahId = parseInt(id, 10)
-  const { fetchSurah, index, readingProgress, saveReadingProgress } = useData()
+  const { fetchSurah, index } = useData()
+  const { readingProgress, saveReadingProgress } = useProgress()
   const [surah, setSurah] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
