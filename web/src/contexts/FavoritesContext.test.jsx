@@ -1,5 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { mergeFavorites } from './FavoritesContext'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, act } from '@testing-library/react'
+import { mergeFavorites, FavoritesProvider, useFavorites } from './FavoritesContext'
+
+vi.mock('../api/worker', () => ({
+  getDeviceId: () => 'test-token',
+  fetchBookmarks: vi.fn().mockResolvedValue(null),
+  addBookmark: vi.fn(),
+  removeBookmark: vi.fn(),
+}))
 
 describe('FavoritesContext serialization', () => {
   beforeEach(() => {
@@ -55,5 +63,60 @@ describe('mergeFavorites (sync merge — no data loss)', () => {
     expect(mergeFavorites({}, {})).toEqual({})
     expect(mergeFavorites({ '1': new Set([1]) }, {})).toEqual({ '1': new Set([1]) })
     expect(mergeFavorites({}, { '1': new Set([1]) })).toEqual({ '1': new Set([1]) })
+  })
+})
+
+function TestToggle() {
+  const { toggleFavorite, isFavorite } = useFavorites()
+  return (
+    <div>
+      <button onClick={() => toggleFavorite(1, 5)}>toggle</button>
+      <span data-testid="fav">{isFavorite(1, 5) ? 'yes' : 'no'}</span>
+    </div>
+  )
+}
+
+describe('FavoritesProvider', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('renders children', () => {
+    render(
+      <FavoritesProvider>
+        <div>child</div>
+      </FavoritesProvider>
+    )
+    expect(screen.getByText('child')).toBeInTheDocument()
+  })
+
+  it('toggleFavorite adds and removes from state', async () => {
+    render(
+      <FavoritesProvider>
+        <TestToggle />
+      </FavoritesProvider>
+    )
+    expect(screen.getByTestId('fav').textContent).toBe('no')
+    await act(async () => {
+      screen.getByText('toggle').click()
+    })
+    expect(screen.getByTestId('fav').textContent).toBe('yes')
+    await act(async () => {
+      screen.getByText('toggle').click()
+    })
+    expect(screen.getByTestId('fav').textContent).toBe('no')
+  })
+
+  it('persists to localStorage', async () => {
+    render(
+      <FavoritesProvider>
+        <TestToggle />
+      </FavoritesProvider>
+    )
+    await act(async () => {
+      screen.getByText('toggle').click()
+    })
+    const stored = JSON.parse(localStorage.getItem('tafsir-favorites'))
+    expect(stored['1']).toEqual([5])
   })
 })
