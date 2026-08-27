@@ -82,6 +82,8 @@ export function FavoritesProvider({ children }) {
     saveFavorites(favorites)
   }, [favorites])
 
+  const lastToggleRef = useRef(null)
+
   const toggleFavorite = useCallback((surahId, ayahNumber) => {
     setFavorites(prev => {
       const key = String(surahId)
@@ -93,16 +95,21 @@ export function FavoritesProvider({ children }) {
       } else {
         next.delete(ayahNumber)
       }
-      if (deviceId) {
-        if (adding) {
-          addBookmark(deviceId, surahId, ayahNumber)
-        } else {
-          removeBookmark(deviceId, surahId, ayahNumber)
-        }
-      }
+      lastToggleRef.current = { surahId, ayahNumber, adding }
       return { ...prev, [key]: next }
     })
-  }, [deviceId])
+  }, [])
+
+  useEffect(() => {
+    const toggle = lastToggleRef.current
+    if (!toggle || !deviceId) return
+    lastToggleRef.current = null
+    if (toggle.adding) {
+      addBookmark(deviceId, toggle.surahId, toggle.ayahNumber)
+    } else {
+      removeBookmark(deviceId, toggle.surahId, toggle.ayahNumber)
+    }
+  }, [favorites, deviceId])
 
   const isFavorite = useCallback((surahId, ayahNumber) => {
     const key = String(surahId)

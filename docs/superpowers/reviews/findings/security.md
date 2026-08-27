@@ -48,7 +48,7 @@ Known issues intentionally **not** re-filed here (cross-referenced instead): dev
 - **Location:** `docs/r2-migration-summary.md:34`
 - **Evidence:**
   ```
-  | Account ID | `5c651e4916c8b8c31ba4f5b11ec7862b` |
+  | Account ID | `<REDACTED>` |
   ```
   Also embedded in command examples at `docs/r2-migration-summary.md:59` and `docs/superpowers/plans/2026-07-19-host-tafsir-data-on-r2.md:143`.
 - **Why it matters:** The Cloudflare **account ID** is committed to the repo. Full-history sweep confirms it entered via commits `ef89701`/`f7097cc` while `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` were always `...` placeholders — so **no credential ever leaked**, and Cloudflare treats account IDs as non-secret identifiers (they appear in API endpoint URLs). Residual risk is information disclosure that facilitates targeted phishing/social-engineering against the account, plus permanent exposure even after repo cleanup due to git history.

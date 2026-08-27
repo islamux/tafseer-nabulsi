@@ -140,7 +140,7 @@ Tasks 9–15 (Phase 2)           →  when user has R2 access; runbook only
 ### How to resume
 ```bash
 # Option A: boto3 (faster, needs S3 API token in env)
-R2_ACCOUNT_ID=5c651e4916c8b8c31ba4f5b11ec7862b \
+R2_ACCOUNT_ID=<REDACTED> \
 R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
 R2_BUCKET=tafseer-nabulsi-data \
 uv run --with boto3 scripts/upload_to_r2.py

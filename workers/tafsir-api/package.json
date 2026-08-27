@@ -1,0 +1,12 @@
+{
+  "name": "tafsir-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npx vitest run",
+    "test:watch": "npx vitest"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}
