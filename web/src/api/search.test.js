@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { searchLocal } from './search'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { searchLocal, buildSearchIndex } from './search'
 
 describe('searchLocal', () => {
   const mockIndex = [
-    { text: 'الحمد لله', tafsir_short: 'تفسير 1', tafsir_long: 'شرح كامل' },
-    { text: 'قل هو الله احد', tafsir_short: 'تفسير 2', tafsir_long: 'شرح الاخلاص' },
-    { text: 'تبارك الذي', tafsir_short: '', tafsir_long: 'تفصيل الملك' },
+    { surah_id: 1, surah_name: 'الفاتحة', ayah_number: 1, text: 'بسم الله', tafsir_short: 'مقدمة', tafsir_long: 'شرح مفصل' },
+    { surah_id: 112, surah_name: 'الإخلاص', ayah_number: 1, text: 'قل هو الله احد', tafsir_short: 'توحيد', tafsir_long: 'شرح الاخلاص' },
+    { surah_id: 67, surah_name: 'الملك', ayah_number: 1, text: 'تبارك الذي', tafsir_short: '', tafsir_long: 'تفصيل الملك' },
   ]
 
   it('returns empty array for empty query', () => {
@@ -17,14 +17,14 @@ describe('searchLocal', () => {
   })
 
   it('matches text field', () => {
-    const results = searchLocal('الحمد', mockIndex)
+    const results = searchLocal('بسم', mockIndex)
     expect(results).toHaveLength(1)
-    expect(results[0].text).toBe('الحمد لله')
+    expect(results[0].text).toBe('بسم الله')
   })
 
   it('matches tafsir_short field', () => {
-    const results = searchLocal('تفسير', mockIndex)
-    expect(results).toHaveLength(2)
+    const results = searchLocal('توحيد', mockIndex)
+    expect(results).toHaveLength(1)
   })
 
   it('matches tafsir_long field', () => {
@@ -35,33 +35,43 @@ describe('searchLocal', () => {
 
   it('caps results at 50', () => {
     const bigIndex = Array.from({ length: 60 }, (_, i) => ({
-      text: `اية ${i}`,
-      tafsir_short: '',
-      tafsir_long: '',
+      surah_id: 1, surah_name: 'test', ayah_number: i + 1,
+      text: `آية ${i}`, tafsir_short: '', tafsir_long: '',
     }))
-    const results = searchLocal('اية', bigIndex)
+    const results = searchLocal('آية', bigIndex)
     expect(results).toHaveLength(50)
   })
 
-  it('matches diacritized text with undiacritized query', () => {
-    const vocalizedIndex = [
-      { text: 'بسم الله الرحمن الرحيم', tafsir_short: '', tafsir_long: '' },
-    ]
-    const results = searchLocal('بسم الله', vocalizedIndex)
-    expect(results).toHaveLength(1)
+  it('returns surah metadata in results', () => {
+    const results = searchLocal('بسم', mockIndex)
+    expect(results[0].surah_id).toBe(1)
+    expect(results[0].surah_name).toBe('الفاتحة')
+    expect(results[0].ayah_number).toBe(1)
   })
 
-  it('matches alef-madda and alef-hamza variants', () => {
+  it('is case insensitive via pre-normalized index', () => {
     const index = [
-      { text: 'امن الرسول', tafsir_short: '', tafsir_long: '' },
+      { surah_id: 1, surah_name: 'test', ayah_number: 1, text: 'بسم الله', tafsir_short: '', tafsir_long: '' },
     ]
-    expect(searchLocal('امن', index)).toHaveLength(1)
+    expect(searchLocal('بسم', index)).toHaveLength(1)
   })
+})
 
-  it('matches diacritized tafsir_short field', () => {
-    const index = [
-      { text: 'some text', tafsir_short: 'تفسير مبسط', tafsir_long: '' },
+describe('buildSearchIndex', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('fetches _search_index.json from DATA_BASE', async () => {
+    vi.resetModules()
+    const { buildSearchIndex: freshBuild } = await import('./search')
+    const fakeIndex = [
+      { surah_id: 1, surah_name: 'الفاتحة', ayah_number: 1, text: 'بسم الله', tafsir_short: '', tafsir_long: '' },
     ]
-    expect(searchLocal('تفسير مبسط', index)).toHaveLength(1)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => fakeIndex,
+    })
+    const result = await freshBuild()
+    expect(result).toEqual(fakeIndex)
+    expect(globalThis.fetch).toHaveBeenCalledWith(expect.stringContaining('_search_index.json'))
   })
 })

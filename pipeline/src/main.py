@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 from src.config import OUTPUT_DIR, SURAH_COUNT, SURAH_NAMES
-from src.merge.builder import build_surah_json, generate_report, save_index, save_surah_json
+from src.merge.builder import build_surah_json, build_search_index, generate_report, save_index, save_search_index, save_surah_json
 from src.quran.parser import parse_quran_json
 from src.tafsir.category_index import (
     collect_all_stories,
@@ -162,6 +162,9 @@ def main():
         existing_data.sort(key=lambda d: d["surah_id"])
 
         save_index(existing_data)
+        search_index = build_search_index(existing_data)
+        save_search_index(search_index)
+        logger.info("Search index: %d entries", len(search_index))
         report = generate_report(existing_data)
         report_path = OUTPUT_DIR / "_report.json"
         with open(report_path, "w", encoding="utf-8") as f:
