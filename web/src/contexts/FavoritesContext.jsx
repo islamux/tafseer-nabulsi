@@ -4,6 +4,7 @@ import { getDeviceId, fetchBookmarks, addBookmark, removeBookmark } from '../api
 const FavoritesContext = createContext()
 
 const STORAGE_KEY = 'tafsir-favorites'
+const TOMBSTONE_KEY = 'tafsir-favorites-tombstones'
 
 function loadFavorites() {
   try {
@@ -29,6 +30,20 @@ function saveFavorites(favorites) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
 }
 
+function loadTombstones() {
+  try {
+    const raw = localStorage.getItem(TOMBSTONE_KEY)
+    if (!raw) return new Set()
+    return new Set(JSON.parse(raw))
+  } catch {
+    return new Set()
+  }
+}
+
+function saveTombstones(tombstones) {
+  localStorage.setItem(TOMBSTONE_KEY, JSON.stringify([...tombstones]))
+}
+
 function remoteToFavorites(bookmarks) {
   const result = {}
   for (const b of bookmarks) {
@@ -39,10 +54,16 @@ function remoteToFavorites(bookmarks) {
   return result
 }
 
-export function mergeFavorites(local, remote) {
+export function mergeFavorites(local, remote, tombstones = new Set()) {
   const merged = {}
   for (const key of new Set([...Object.keys(local), ...Object.keys(remote)])) {
-    merged[key] = new Set([...(local[key] || []), ...(remote[key] || [])])
+    const allAyahs = new Set([...(local[key] || []), ...(remote[key] || [])])
+    for (const ayah of allAyahs) {
+      if (!tombstones.has(`${key}:${ayah}`)) {
+        if (!merged[key]) merged[key] = new Set()
+        merged[key].add(ayah)
+      }
+    }
   }
   return merged
 }
@@ -52,6 +73,7 @@ export function FavoritesProvider({ children }) {
   const [deviceId, setDeviceId] = useState(null)
   const [storageError, setStorageError] = useState(false)
   const localAtMountRef = useRef(favorites)
+  const tombstonesRef = useRef(loadTombstones())
 
   useEffect(() => {
     const did = getDeviceId()
@@ -61,16 +83,29 @@ export function FavoritesProvider({ children }) {
     fetchBookmarks(did).then(bookmarks => {
       if (cancelled || !bookmarks) return
       const remote = remoteToFavorites(bookmarks)
-      setFavorites(prev => mergeFavorites(prev, remote))
+      const tombstones = tombstonesRef.current
+      setFavorites(prev => mergeFavorites(prev, remote, tombstones))
+
       const local = localAtMountRef.current
       for (const key of Object.keys(local)) {
         const remoteSet = remote[key]
         for (const ayah of local[key]) {
-          if (!remoteSet || !remoteSet.has(ayah)) {
-            addBookmark(did, Number(key), ayah)
+          if (!tombstones.has(`${key}:${ayah}`)) {
+            if (!remoteSet || !remoteSet.has(ayah)) {
+              addBookmark(did, Number(key), ayah)
+            }
           }
         }
       }
+
+      for (const t of tombstones) {
+        const [sId, aNum] = t.split(':')
+        const rSet = remote[sId]
+        if (!rSet || !rSet.has(Number(aNum))) {
+          tombstones.delete(t)
+        }
+      }
+      saveTombstones(tombstones)
     })
     return () => { cancelled = true }
   }, [])
@@ -94,9 +129,12 @@ export function FavoritesProvider({ children }) {
       const adding = !next.has(ayahNumber)
       if (adding) {
         next.add(ayahNumber)
+        tombstonesRef.current.delete(`${key}:${ayahNumber}`)
       } else {
         next.delete(ayahNumber)
+        tombstonesRef.current.add(`${key}:${ayahNumber}`)
       }
+      saveTombstones(tombstonesRef.current)
       lastToggleRef.current = { surahId, ayahNumber, adding }
       return { ...prev, [key]: next }
     })
