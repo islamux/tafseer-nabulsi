@@ -31,7 +31,7 @@ Pipeline → minified JSON → upload to R2 → web app fetches via VITE_DATA_BA
 |---|---|
 | Bucket | `tafseer-nabulsi-data` |
 | Public URL | `https://pub-9f6e4a5270114d09a4eb9cdee8e9f840.r2.dev/data` |
-| Account ID | `5c651e4916c8b8c31ba4f5b11ec7862b` |
+| Account ID | `<REDACTED>` |
 | CORS | `islamux.github.io` + `localhost:5173`, GET/HEAD |
 | Cache | `max-age=86400, s-maxage=31536000, stale-while-revalidate=604800` |
 
@@ -56,7 +56,7 @@ VITE_DATA_BASE=https://pub-9f6e4a5270114d09a4eb9cdee8e9f840.r2.dev/data pnpm --d
 
 ```bash
 # Fast (needs S3 API token):
-R2_ACCOUNT_ID=5c651e4916c8b8c31ba4f5b11ec7862b \
+R2_ACCOUNT_ID=<REDACTED> \
 R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... \
 R2_BUCKET=tafseer-nabulsi-data \
 uv run --with boto3 scripts/upload_to_r2.py
