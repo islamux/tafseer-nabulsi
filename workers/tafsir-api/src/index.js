@@ -44,7 +44,9 @@ function isValidAyah(n) {
 async function authenticate(request, env) {
   const authHeader = request.headers.get('Authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null
-  return authHeader.slice(7)
+  const token = authHeader.slice(7)
+  if (typeof token !== 'string' || token.length < 8 || token.length > 128) return null
+  return token
 }
 
 function validateBookmark(body) {
@@ -66,7 +68,7 @@ function validateProgress(body) {
 const routes = [
   { method: 'GET', path: '/api/bookmarks', handler: async (request, env, deviceId, cors) => {
     const { results } = await env.DB.prepare(
-      'SELECT surah_id, ayah_number, created_at FROM bookmarks WHERE device_id = ? ORDER BY surah_id, ayah_number'
+      'SELECT surah_id, ayah_number, created_at FROM bookmarks WHERE device_id = ? ORDER BY surah_id, ayah_number LIMIT 500'
     ).bind(deviceId).all()
     return json({ bookmarks: results }, 200, cors)
   }},
@@ -90,7 +92,7 @@ const routes = [
   }},
   { method: 'GET', path: '/api/progress', handler: async (request, env, deviceId, cors) => {
     const { results } = await env.DB.prepare(
-      'SELECT surah_id, last_ayah_number, updated_at FROM reading_progress WHERE device_id = ? ORDER BY surah_id'
+      'SELECT surah_id, last_ayah_number, updated_at FROM reading_progress WHERE device_id = ? ORDER BY surah_id LIMIT 500'
     ).bind(deviceId).all()
     return json({ progress: results }, 200, cors)
   }},

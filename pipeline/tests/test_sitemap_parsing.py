@@ -6,7 +6,7 @@ left 95/114 surahs with zero tafsir. These tests pin the UTF-8 decode behavior
 by feeding raw bytes (as ``requests.content`` returns).
 """
 
-from src.config import parse_category_urls_from_sitemap
+from src.tafsir.sitemap import parse_category_urls_from_sitemap
 
 # Raw UTF-8 bytes of a minimal sitemap: one English-named surah, one Arabic-named.
 # This is exactly what requests.content would hand us (undecoded bytes).

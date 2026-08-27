@@ -22,15 +22,11 @@ function loadFavorites() {
 }
 
 function saveFavorites(favorites) {
-  try {
-    const obj = {}
-    for (const [surahId, ayahSet] of Object.entries(favorites)) {
-      obj[surahId] = [...ayahSet]
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
-  } catch (e) {
-    console.error('Failed to save favorites to localStorage:', e)
+  const obj = {}
+  for (const [surahId, ayahSet] of Object.entries(favorites)) {
+    obj[surahId] = [...ayahSet]
   }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
 }
 
 function remoteToFavorites(bookmarks) {
@@ -54,6 +50,7 @@ export function mergeFavorites(local, remote) {
 export function FavoritesProvider({ children }) {
   const [favorites, setFavorites] = useState(loadFavorites)
   const [deviceId, setDeviceId] = useState(null)
+  const [storageError, setStorageError] = useState(false)
   const localAtMountRef = useRef(favorites)
 
   useEffect(() => {
@@ -79,7 +76,12 @@ export function FavoritesProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    saveFavorites(favorites)
+    try {
+      saveFavorites(favorites)
+      setStorageError(false)
+    } catch {
+      setStorageError(true)
+    }
   }, [favorites])
 
   const lastToggleRef = useRef(null)
@@ -117,7 +119,7 @@ export function FavoritesProvider({ children }) {
   }, [favorites])
 
   return (
-    <FavoritesContext.Provider value={{ toggleFavorite, isFavorite }}>
+    <FavoritesContext.Provider value={{ toggleFavorite, isFavorite, storageError }}>
       {children}
     </FavoritesContext.Provider>
   )

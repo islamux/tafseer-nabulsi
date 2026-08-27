@@ -99,7 +99,7 @@ describe('Worker API', () => {
         results: [{ surah_id: 1, ayah_number: 1 }],
       })
       const res = await handle('/api/bookmarks', {
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
       })
       expect(res.status).toBe(200)
       const body = await res.json()
@@ -114,7 +114,7 @@ describe('Worker API', () => {
     it('creates a bookmark', async () => {
       const res = await handle('/api/bookmarks', {
         method: 'POST',
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
         body: { surah_id: 1, ayah_number: 1 },
       })
       expect(res.status).toBe(201)
@@ -128,7 +128,7 @@ describe('Worker API', () => {
     it('rejects invalid surah_id', async () => {
       const res = await handle('/api/bookmarks', {
         method: 'POST',
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
         body: { surah_id: 0, ayah_number: 1 },
       })
       expect(res.status).toBe(400)
@@ -137,7 +137,7 @@ describe('Worker API', () => {
     it('rejects missing body', async () => {
       const req = makeRequest('/api/bookmarks', {
         method: 'POST',
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
       })
       const res = await worker.fetch(req, { DB: db })
       expect(res.status).toBe(400)
@@ -148,7 +148,7 @@ describe('Worker API', () => {
     it('deletes a bookmark', async () => {
       const res = await handle('/api/bookmarks', {
         method: 'DELETE',
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
         body: { surah_id: 1, ayah_number: 1 },
       })
       expect(res.status).toBe(200)
@@ -164,7 +164,7 @@ describe('Worker API', () => {
         results: [{ surah_id: 2, last_ayah_number: 50 }],
       })
       const res = await handle('/api/progress', {
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
       })
       expect(res.status).toBe(200)
       const body = await res.json()
@@ -176,7 +176,7 @@ describe('Worker API', () => {
     it('saves progress', async () => {
       const res = await handle('/api/progress', {
         method: 'PUT',
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
         body: { surah_id: 2, last_ayah_number: 50 },
       })
       expect(res.status).toBe(200)
@@ -188,7 +188,7 @@ describe('Worker API', () => {
     it('rejects invalid last_ayah_number', async () => {
       const res = await handle('/api/progress', {
         method: 'PUT',
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
         body: { surah_id: 2, last_ayah_number: 0 },
       })
       expect(res.status).toBe(400)
@@ -199,7 +199,7 @@ describe('Worker API', () => {
     it('returns 500 on DB failure', async () => {
       db.prepare().all.mockRejectedValue(new Error('DB connection lost'))
       const res = await handle('/api/bookmarks', {
-        headers: { Authorization: 'Bearer dev123' },
+        headers: { Authorization: 'Bearer device-12345678' },
       })
       expect(res.status).toBe(500)
       const body = await res.json()
