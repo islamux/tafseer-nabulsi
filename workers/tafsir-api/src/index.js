@@ -44,7 +44,9 @@ function isValidAyah(n) {
 async function authenticate(request, env) {
   const authHeader = request.headers.get('Authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null
-  return authHeader.slice(7)
+  const token = authHeader.slice(7)
+  if (typeof token !== 'string' || token.length < 8 || token.length > 128) return null
+  return token
 }
 
 function validateBookmark(body) {
