@@ -1,6 +1,6 @@
 """Tests for the merge builder module."""
 
-from src.merge.builder import build_surah_json, generate_report
+from src.merge.builder import build_surah_json, build_search_index, generate_report, _normalize_arabic
 from src.quran.parser import Ayah, Surah
 from src.tafsir.content_extractor import TafsirEntry
 
@@ -142,3 +142,56 @@ def test_generate_report():
     assert len(report["per_surah"]) == 1
     assert report["per_surah"][0]["surah_id"] == 1
     assert report["per_surah"][0]["coverage_pct"] == 50.0
+
+
+class TestNormalizeArabic:
+    def test_strips_tashkeel(self):
+        assert _normalize_arabic("بِسْمِ") == "بسم"
+
+    def test_normalizes_alef_variants(self):
+        assert _normalize_arabic("إِبْرَاهِيم") == "ابراهيم"
+        assert _normalize_arabic("آمِين") == "امين"
+        assert _normalize_arabic("أَحَد") == "احد"
+
+    def test_lowercases(self):
+        assert _normalize_arabic("Test") == "test"
+
+    def test_empty_string(self):
+        assert _normalize_arabic("") == ""
+
+
+class TestBuildSearchIndex:
+    def test_builds_flat_index(self):
+        surah_data = [
+            {
+                "surah_id": 1,
+                "name": "الفاتحة",
+                "ayahs": [
+                    {"number": 1, "text": "بِسْمِ ٱللَّهِ", "tafsir_short": "مقدمة", "tafsir_long": "شرح", "media": {}},
+                ],
+            },
+        ]
+        index = build_search_index(surah_data)
+        assert len(index) == 1
+        assert index[0]["surah_id"] == 1
+        assert index[0]["surah_name"] == "الفاتحة"
+        assert index[0]["ayah_number"] == 1
+        assert "بسم" in index[0]["text"]
+        assert "مقدمة" in index[0]["tafsir_short"]
+
+    def test_normalizes_text_at_build_time(self):
+        surah_data = [
+            {
+                "surah_id": 112,
+                "name": "الإخلاص",
+                "ayahs": [
+                    {"number": 1, "text": "قُلْ هُوَ ٱللَّهُ أَحَدٌ", "tafsir_short": "", "tafsir_long": "توحيد", "media": {}},
+                ],
+            },
+        ]
+        index = build_search_index(surah_data)
+        assert index[0]["text"] == "قل هو الله احد"
+
+    def test_empty_surahs(self):
+        index = build_search_index([])
+        assert index == []

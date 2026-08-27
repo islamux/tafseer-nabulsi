@@ -2,12 +2,22 @@
 
 import json
 import os
+import re
+import tempfile
 from pathlib import Path
 
 from src.config import OUTPUT_DIR, SURAH_NAMES
 from src.media.mapper import load_media_csv, map_media_links
 from src.quran.parser import Surah
 from src.tafsir.content_extractor import TafsirEntry
+
+_TASHKEEL_RE = re.compile(r"[\u064b-\u065f\u0670\u06d6-\u06dc\u06df-\u06e8]")
+_ALEF_RE = re.compile(r"[\u0622\u0623\u0625\u0671]")
+
+
+def _normalize_arabic(text: str) -> str:
+    """Strip tashkeel and normalize alef variants for search indexing."""
+    return _ALEF_RE.sub("\u0627", _TASHKEEL_RE.sub("", text.lower()))
 
 
 def build_surah_json(
@@ -93,7 +103,6 @@ def _find_nearest_range(
 
 def save_surah_json(surah_id: int, data: dict) -> Path:
     """Save a surah's JSON to the output directory atomically."""
-    import tempfile
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"{surah_id}.json"
     fd, tmp_path = tempfile.mkstemp(dir=OUTPUT_DIR, suffix=".tmp")
@@ -162,3 +171,40 @@ def generate_report(surahs_data: list[dict]) -> dict:
         "total_gaps": len(gaps),
         "per_surah": per_surah,
     }
+
+
+def build_search_index(surahs_data: list[dict]) -> list[dict]:
+    """Build a flat, pre-normalized search index from surah data.
+
+    Returns a list of entries with normalized Arabic text ready for
+    substring matching at runtime — no further normalization needed.
+    """
+    index = []
+    for surah in surahs_data:
+        sid = surah["surah_id"]
+        name = SURAH_NAMES[sid - 1]
+        for ayah in surah["ayahs"]:
+            index.append({
+                "surah_id": sid,
+                "surah_name": name,
+                "ayah_number": ayah["number"],
+                "text": _normalize_arabic(ayah.get("text", "")),
+                "tafsir_short": _normalize_arabic(ayah.get("tafsir_short", "")),
+                "tafsir_long": _normalize_arabic(ayah.get("tafsir_long", "")),
+            })
+    return index
+
+
+def save_search_index(index: list[dict]) -> Path:
+    """Save the precomputed search index to _search_index.json."""
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = OUTPUT_DIR / "_search_index.json"
+    fd, tmp_path = tempfile.mkstemp(dir=OUTPUT_DIR, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(index, f, ensure_ascii=False, separators=(",", ":"))
+        os.replace(tmp_path, out_path)
+    except BaseException:
+        os.unlink(tmp_path)
+        raise
+    return out_path
