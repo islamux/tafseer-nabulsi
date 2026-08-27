@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 function resolveApiOrigin() {
   if (process.env.VITE_API_ORIGIN !== undefined) return process.env.VITE_API_ORIGIN
@@ -22,7 +23,26 @@ function cspApiOriginPlugin() {
 
 export default defineConfig({
   base: '/tafseer-nabulsi/',
-  plugins: [react(), cspApiOriginPlugin()],
+  plugins: [
+    react(),
+    cspApiOriginPlugin(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/data\/.*\.json$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'tafsir-data',
+              expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 3600 },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   test: {
     environment: 'jsdom',
     globals: true,
