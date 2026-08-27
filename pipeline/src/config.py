@@ -1,11 +1,6 @@
 """Pipeline configuration constants and paths."""
 
-import re
 from pathlib import Path
-
-import requests
-import warnings
-from bs4 import BeautifulSoup
 
 # --- Paths ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -57,55 +52,7 @@ SURAH_SLUGS = {
 }
 
 
-def parse_category_urls_from_sitemap(sitemap_bytes: bytes) -> dict[int, str]:
-    """Parse raw sitemap bytes into surah_number → category_url.
-
-    Decodes the sitemap as UTF-8 (mandated by the sitemaps protocol). Accepting
-    bytes — not ``requests.text`` — avoids the Latin-1 default that mojibake'd
-    Arabic category URLs and left most surahs unresolved.
-    """
-    text = sitemap_bytes.decode("utf-8", errors="replace")
-    soup = BeautifulSoup(text, "xml")
-    all_urls = [loc.text.strip() for loc in soup.find_all("loc")]
-
-    surah_map: dict[int, list[str]] = {}
-    for url in all_urls:
-        m = re.search(r"/category/\((\d{3})\)", url)
-        if m:
-            surah_num = int(m.group(1))
-            if 1 <= surah_num <= 114:
-                surah_map.setdefault(surah_num, []).append(url)
-
-    # Prefer English-named URLs; fall back to the last candidate.
-    result: dict[int, str] = {}
-    for num, urls in surah_map.items():
-        english = [u for u in urls if "-Al-" in u or "-al-" in u]
-        result[num] = english[0] if english else urls[-1]
-
-    return result
-
-
-def _fetch_sitemap_category_urls() -> dict[int, str]:
-    """Fetch sitemap and build surah_number → category_url mapping, with disk cache."""
-    cache_path = CACHE_DIR / "sitemap_categories.json"
-    if cache_path.exists():
-        import json
-        return {int(k): v for k, v in json.loads(cache_path.read_text()).items()}
-
-    warnings.filterwarnings("ignore")
-    resp = requests.get(NABULSI_SITEMAP_URL, timeout=30)
-    resp.raise_for_status()
-    result = parse_category_urls_from_sitemap(resp.content)
-
-    # Cache for later runs
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    import json
-    cache_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
-
-    return result
-
-
-# Lazy-loaded mapping
+# Lazy-loaded mapping (delegates to sitemap module)
 _SITEMAP_CATEGORY_URLS: dict[int, str] | None = None
 
 
@@ -113,5 +60,6 @@ def get_sitemap_category_url(surah_number: int) -> str | None:
     """Get the category URL for a surah from the sitemap."""
     global _SITEMAP_CATEGORY_URLS
     if _SITEMAP_CATEGORY_URLS is None:
-        _SITEMAP_CATEGORY_URLS = _fetch_sitemap_category_urls()
+        from src.tafsir.sitemap import fetch_sitemap_category_urls
+        _SITEMAP_CATEGORY_URLS = fetch_sitemap_category_urls()
     return _SITEMAP_CATEGORY_URLS.get(surah_number)
